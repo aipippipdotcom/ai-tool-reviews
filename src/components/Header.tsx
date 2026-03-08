@@ -67,6 +67,7 @@ const Header = () => {
         <div className="md:hidden border-t border-border bg-card px-4 py-3 space-y-1">
           <Link to="/" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary">Home</Link>
           <Link to="/categories" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary">Categories</Link>
+          <Link to="/about" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary">About</Link>
         </div>
       )}
     </header>
