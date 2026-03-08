@@ -74,7 +74,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
           />
         </div>
         <Textarea
-          placeholder="Viết bình luận..."
+          placeholder="Write a comment..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
           maxLength={2000}
