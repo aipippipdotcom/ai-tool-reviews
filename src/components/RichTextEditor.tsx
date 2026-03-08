@@ -1,6 +1,8 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,7 +51,10 @@ const ToolbarButton = ({
 }) => (
   <button
     type="button"
-    onClick={onClick}
+    onMouseDown={(e) => {
+      e.preventDefault(); // Prevent editor blur
+      onClick();
+    }}
     title={title}
     className={`p-1.5 rounded-md transition-colors ${
       active
@@ -78,9 +83,14 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4, 5] },
       }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: { class: "text-primary underline" },
+      }),
       Image.configure({
         HTMLAttributes: { class: "rounded-lg max-w-full" },
       }),
+      Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "Start writing your review..." }),
     ],
@@ -91,7 +101,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     editorProps: {
       attributes: {
         class:
-          "min-h-[400px] p-4 focus:outline-none prose prose-invert max-w-none [&_h1]:font-display [&_h2]:font-display [&_h3]:font-display [&_h4]:font-display [&_h5]:font-display [&_p]:text-muted-foreground [&_a]:text-primary [&_strong]:text-foreground [&_li]:text-muted-foreground [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_h5]:text-foreground [&_blockquote]:border-primary/30 [&_blockquote]:text-muted-foreground [&_code]:bg-secondary [&_code]:text-primary [&_code]:px-1 [&_code]:rounded",
+          "min-h-[400px] p-4 focus:outline-none prose prose-invert max-w-none [&_h1]:font-display [&_h1]:text-3xl [&_h2]:font-display [&_h2]:text-2xl [&_h3]:font-display [&_h3]:text-xl [&_h4]:font-display [&_h4]:text-lg [&_h5]:font-display [&_h5]:text-base [&_p]:text-muted-foreground [&_a]:text-primary [&_strong]:text-foreground [&_li]:text-muted-foreground [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_h5]:text-foreground [&_blockquote]:border-primary/30 [&_blockquote]:text-muted-foreground [&_code]:bg-secondary [&_code]:text-primary [&_code]:px-1 [&_code]:rounded [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6",
       },
     },
   });
@@ -176,13 +186,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         <div className="w-px h-5 bg-border mx-1" />
 
         {/* Headings */}
-        <ToolbarButton onClick={() => {
-          console.log("H1 clicked, editor available:", !!editor);
-          console.log("Can toggleHeading:", editor.can().toggleHeading({ level: 1 }));
-          const result = editor.chain().focus().toggleHeading({ level: 1 }).run();
-          console.log("toggleHeading result:", result);
-          console.log("Current content:", editor.getHTML());
-        }} active={editor.isActive("heading", { level: 1 })} title="Heading 1">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive("heading", { level: 1 })} title="Heading 1">
           <Heading1 size={s} />
         </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive("heading", { level: 2 })} title="Heading 2">
@@ -201,11 +205,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         <div className="w-px h-5 bg-border mx-1" />
 
         {/* Lists */}
-        <ToolbarButton onClick={() => {
-          console.log("BulletList clicked, can toggle:", editor.can().toggleBulletList());
-          const result = editor.chain().focus().toggleBulletList().run();
-          console.log("toggleBulletList result:", result);
-        }} active={editor.isActive("bulletList")} title="Bullet List">
+        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet List">
           <List size={s} />
         </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Ordered List">
