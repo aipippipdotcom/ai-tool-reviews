@@ -15,7 +15,7 @@ const Header = () => {
         <Link to="/" className="flex items-center gap-2.5">
           <img src={logo} alt="AIPipPip" className="h-8 w-8 rounded-lg" />
           <span className="font-display text-xl font-bold">
-            <span className="text-gradient">AI</span><span className="text-foreground">PipPip</span>
+            <span className="text-gradient">AI</span><span className="text-foreground">PipPip</span><span className="text-red-500">.Net</span>
           </span>
         </Link>
 
