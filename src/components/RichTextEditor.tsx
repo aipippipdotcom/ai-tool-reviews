@@ -1,11 +1,8 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
-import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -80,18 +77,10 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4, 5] },
-        // Disable built-in link/underline so we can use custom configured ones
-        link: false,
-        underline: false,
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: { class: "text-primary underline" },
       }),
       Image.configure({
         HTMLAttributes: { class: "rounded-lg max-w-full" },
       }),
-      Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "Start writing your review..." }),
     ],
@@ -187,7 +176,13 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         <div className="w-px h-5 bg-border mx-1" />
 
         {/* Headings */}
-        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive("heading", { level: 1 })} title="Heading 1">
+        <ToolbarButton onClick={() => {
+          console.log("H1 clicked, editor available:", !!editor);
+          console.log("Can toggleHeading:", editor.can().toggleHeading({ level: 1 }));
+          const result = editor.chain().focus().toggleHeading({ level: 1 }).run();
+          console.log("toggleHeading result:", result);
+          console.log("Current content:", editor.getHTML());
+        }} active={editor.isActive("heading", { level: 1 })} title="Heading 1">
           <Heading1 size={s} />
         </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive("heading", { level: 2 })} title="Heading 2">
@@ -206,7 +201,11 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         <div className="w-px h-5 bg-border mx-1" />
 
         {/* Lists */}
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet List">
+        <ToolbarButton onClick={() => {
+          console.log("BulletList clicked, can toggle:", editor.can().toggleBulletList());
+          const result = editor.chain().focus().toggleBulletList().run();
+          console.log("toggleBulletList result:", result);
+        }} active={editor.isActive("bulletList")} title="Bullet List">
           <List size={s} />
         </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Ordered List">
