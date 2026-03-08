@@ -51,7 +51,7 @@ const CategoryPage = () => {
         <main className="flex-1 container mx-auto px-4 py-10">
           <div className="mb-10">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
-              {category?.icon && <span>{category.icon}</span>}
+              {category?.icon && <CategoryIcon name={category.icon} className="h-8 w-8 text-primary" />}
               {category?.name}
             </h1>
             <p className="text-muted-foreground mt-2">

@@ -77,7 +77,7 @@ const PostPage = () => {
               <div className="flex items-center gap-3 mb-5">
                 {category && (
                   <span className="text-[11px] font-medium uppercase tracking-wider text-primary">
-                    {category.icon} {category.name}
+                    <CategoryIcon name={category.icon} className="h-3.5 w-3.5 text-primary inline mr-1" /> {category.name}
                   </span>
                 )}
                 <span className="text-border">·</span>

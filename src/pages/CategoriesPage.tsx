@@ -38,7 +38,7 @@ const CategoriesPage = () => {
                 to={`/category/${cat.slug}`}
                 className="group flex items-center gap-4 p-5 rounded-xl border border-border bg-card hover:border-primary/30 hover:glow transition-all duration-300"
               >
-                <span className="text-3xl shrink-0">{cat.icon}</span>
+                <CategoryIcon name={cat.icon} className="h-7 w-7 text-primary" />
                 <div className="flex-1 min-w-0">
                   <h2 className="font-display font-semibold text-foreground group-hover:text-primary transition-colors">
                     {cat.name}
