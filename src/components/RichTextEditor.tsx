@@ -176,7 +176,13 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         <div className="w-px h-5 bg-border mx-1" />
 
         {/* Headings */}
-        <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive("heading", { level: 1 })} title="Heading 1">
+        <ToolbarButton onClick={() => {
+          console.log("H1 clicked, editor available:", !!editor);
+          console.log("Can toggleHeading:", editor.can().toggleHeading({ level: 1 }));
+          const result = editor.chain().focus().toggleHeading({ level: 1 }).run();
+          console.log("toggleHeading result:", result);
+          console.log("Current content:", editor.getHTML());
+        }} active={editor.isActive("heading", { level: 1 })} title="Heading 1">
           <Heading1 size={s} />
         </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive("heading", { level: 2 })} title="Heading 2">
@@ -195,7 +201,11 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         <div className="w-px h-5 bg-border mx-1" />
 
         {/* Lists */}
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet List">
+        <ToolbarButton onClick={() => {
+          console.log("BulletList clicked, can toggle:", editor.can().toggleBulletList());
+          const result = editor.chain().focus().toggleBulletList().run();
+          console.log("toggleBulletList result:", result);
+        }} active={editor.isActive("bulletList")} title="Bullet List">
           <List size={s} />
         </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Ordered List">
