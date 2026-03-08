@@ -48,6 +48,9 @@ const Index = () => {
         <Header />
         <main className="flex-1 container mx-auto px-4 py-10">
           <HeroSection />
+          <div className="my-8">
+            <SearchBar />
+          </div>
           {(categories ?? []).map((cat) => (
             <CategorySection
               key={cat.id}
