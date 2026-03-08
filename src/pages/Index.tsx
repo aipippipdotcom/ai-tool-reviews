@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import CategorySection from "@/components/CategorySection";
+import SearchBar from "@/components/SearchBar";
 import EmailSubscribe from "@/components/EmailSubscribe";
 import { Helmet } from "react-helmet-async";
 
@@ -47,6 +48,9 @@ const Index = () => {
         <Header />
         <main className="flex-1 container mx-auto px-4 py-10">
           <HeroSection />
+          <div className="my-8">
+            <SearchBar />
+          </div>
           {(categories ?? []).map((cat) => (
             <CategorySection
               key={cat.id}
