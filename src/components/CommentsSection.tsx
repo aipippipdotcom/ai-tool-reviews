@@ -87,7 +87,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
           size="sm"
         >
           <Send className="h-3.5 w-3.5 mr-1.5" />
-          {mutation.isPending ? "Đang gửi..." : "Gửi bình luận"}
+          {mutation.isPending ? "Posting..." : "Post Comment"}
         </Button>
       </div>
 
