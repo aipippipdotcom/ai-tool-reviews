@@ -27,7 +27,7 @@ const AboutPage = () => {
             Our mission is to help users work smarter, save time, and achieve better results by choosing AI solutions that deliver real performance and value – not trends, but tools that empower creativity, streamline workflows, and drive sustainable growth.
           </p>
           <p>
-            At AIPipPip.com, every review is crafted with clarity, transparency, and practical insight – enabling creators, entrepreneurs, and business owners to confidently adopt AI and unlock new opportunities for innovation.
+            At AIPipPip.net, every review is crafted with clarity, transparency, and practical insight – enabling creators, entrepreneurs, and business owners to confidently adopt AI and unlock new opportunities for innovation.
           </p>
         </div>
 
