@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { format } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import CategoryIcon from "@/components/CategoryIcon";
 
 const PostPage = () => {
   const { slug } = useParams<{ slug: string }>();
