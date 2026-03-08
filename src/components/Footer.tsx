@@ -50,9 +50,12 @@ const Footer = () => {
             <h4 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider mb-4">
               About
             </h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
               AIPipPip helps creators, marketers, and developers discover the best AI-powered tools through honest, detailed reviews.
             </p>
+            <Link to="/about" className="text-sm text-primary hover:text-primary/80 transition-colors font-medium">
+              Learn more about us →
+            </Link>
           </div>
         </div>
 
