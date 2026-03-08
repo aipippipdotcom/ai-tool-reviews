@@ -4,6 +4,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 
+const sanitizeFileName = (name: string) =>
+  name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-");
+
 interface CoverImageUploadProps {
   value: string;
   onChange: (url: string) => void;
@@ -28,7 +37,8 @@ const CoverImageUpload = ({ value, onChange }: CoverImageUploadProps) => {
     }
 
     setUploading(true);
-    const fileName = `covers/${Date.now()}-${file.name}`;
+    const safeFileName = sanitizeFileName(file.name);
+    const fileName = `covers/${Date.now()}-${safeFileName}`;
     const { data, error } = await supabase.storage
       .from("post-images")
       .upload(fileName, file);

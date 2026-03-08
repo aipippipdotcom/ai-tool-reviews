@@ -64,6 +64,15 @@ const ToolbarButton = ({
   </button>
 );
 
+const sanitizeFileName = (name: string) =>
+  name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-");
+
 const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -71,6 +80,9 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4, 5] },
+        // Disable built-in link/underline so we can use custom configured ones
+        link: false,
+        underline: false,
       }),
       Link.configure({
         openOnClick: false,
@@ -124,7 +136,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         return;
       }
 
-      const fileName = `content/${Date.now()}-${file.name}`;
+      const safeFileName = sanitizeFileName(file.name);
+      const fileName = `content/${Date.now()}-${safeFileName}`;
       const { data, error } = await supabase.storage
         .from("post-images")
         .upload(fileName, file);
