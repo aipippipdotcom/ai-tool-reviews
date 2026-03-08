@@ -11,6 +11,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md shadow-nav border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="AIPipPip" className="h-9 w-9 rounded-lg" />
           <span className="font-display text-2xl font-bold text-gradient-primary">
             AIPipPip
           </span>
