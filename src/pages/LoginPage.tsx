@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import logo from "@/assets/logo.png";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -18,9 +19,9 @@ const LoginPage = () => {
     setLoading(true);
     const { error } = await signIn(email, password);
     if (error) {
-      toast.error("Đăng nhập thất bại. Kiểm tra lại thông tin.");
+      toast.error("Login failed. Check your credentials.");
     } else {
-      toast.success("Đăng nhập thành công!");
+      toast.success("Welcome back!");
       navigate("/admin");
     }
     setLoading(false);
@@ -30,32 +31,34 @@ const LoginPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="font-display text-2xl font-bold text-gradient-primary">AIPipPip</h1>
-          <p className="text-sm text-muted-foreground mt-2">Đăng nhập quản trị</p>
+          <img src={logo} alt="AIPipPip" className="h-14 w-14 mx-auto mb-4 rounded-xl" />
+          <h1 className="font-display text-xl font-bold text-foreground">Admin Login</h1>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 p-6 rounded-xl border border-border bg-card">
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-muted-foreground">Email</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="bg-secondary border-border"
             />
           </div>
           <div>
-            <Label htmlFor="password">Mật khẩu</Label>
+            <Label htmlFor="password" className="text-muted-foreground">Password</Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="bg-secondary border-border"
             />
           </div>
-          <Button type="submit" className="w-full bg-gradient-primary" disabled={loading}>
-            {loading ? "Đang xử lý..." : "Đăng nhập"}
+          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 glow" disabled={loading}>
+            {loading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
       </div>

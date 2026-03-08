@@ -23,9 +23,9 @@ const PostCard = ({
   return (
     <Link
       to={`/post/${slug}`}
-      className="group block bg-card rounded-lg overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300"
+      className="group block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all duration-300 hover:glow"
     >
-      <div className="aspect-video bg-muted overflow-hidden">
+      <div className="aspect-[16/10] bg-secondary overflow-hidden">
         {coverImage ? (
           <img
             src={coverImage}
@@ -34,23 +34,24 @@ const PostCard = ({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-primary opacity-20" />
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-primary text-lg">✦</span>
+            </div>
+          </div>
         )}
       </div>
       <div className="p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Link
-            to={`/category/${categorySlug}`}
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-1 rounded-full hover:bg-primary/20 transition-colors"
-          >
+          <span className="text-[11px] font-medium uppercase tracking-wider text-primary">
             {categoryName}
-          </Link>
-          <span className="text-xs text-muted-foreground">
-            {format(new Date(createdAt), "dd/MM/yyyy")}
+          </span>
+          <span className="text-border">·</span>
+          <span className="text-[11px] text-muted-foreground">
+            {format(new Date(createdAt), "MMM d, yyyy")}
           </span>
         </div>
-        <h3 className="font-display font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
+        <h3 className="font-display font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2 leading-snug">
           {title}
         </h3>
         {excerpt && (

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Mail } from "lucide-react";
+import { Send } from "lucide-react";
 
 const EmailSubscribe = () => {
   const [email, setEmail] = useState("");
@@ -20,44 +20,45 @@ const EmailSubscribe = () => {
 
     if (error) {
       if (error.code === "23505") {
-        toast.info("Email này đã đăng ký rồi!");
+        toast.info("This email is already subscribed!");
       } else {
-        toast.error("Có lỗi xảy ra, vui lòng thử lại.");
+        toast.error("Something went wrong. Please try again.");
       }
     } else {
-      toast.success("Đăng ký thành công! Cảm ơn bạn.");
+      toast.success("You're in! Thanks for subscribing.");
       setEmail("");
     }
     setLoading(false);
   };
 
   return (
-    <section className="bg-gradient-hero rounded-2xl p-8 md:p-12 text-center">
-      <div className="max-w-xl mx-auto">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 mb-4">
-          <Mail className="h-6 w-6 text-primary-foreground" />
-        </div>
-        <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-3">
-          Nhận tin tức & khuyến mại
+    <section className="relative overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="absolute inset-0 bg-grid opacity-20" />
+      <div className="absolute top-0 right-0 w-60 h-60 bg-primary/10 blur-[80px] rounded-full" />
+
+      <div className="relative px-8 py-14 md:px-16 md:py-16 text-center">
+        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
+          Stay ahead of the curve
         </h2>
-        <p className="text-primary-foreground/70 text-sm mb-6 leading-relaxed">
-          Đăng ký để nhận thông tin về các công cụ AI mới nhất, deal khuyến mại và review chuyên sâu.
+        <p className="text-muted-foreground text-sm md:text-base mb-8 max-w-md mx-auto leading-relaxed">
+          Get the latest AI tool reviews, exclusive deals, and product launches straight to your inbox.
         </p>
-        <form onSubmit={handleSubmit} className="flex gap-3 max-w-md mx-auto">
+        <form onSubmit={handleSubmit} className="flex gap-3 max-w-sm mx-auto">
           <Input
             type="email"
-            placeholder="Email của bạn..."
+            placeholder="your@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/40 focus:border-accent"
+            className="bg-secondary border-border text-foreground placeholder:text-muted-foreground"
           />
           <Button
             type="submit"
             disabled={loading}
-            className="bg-gradient-accent text-accent-foreground hover:opacity-90 transition-opacity shrink-0"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 glow shrink-0 gap-1.5"
           >
-            {loading ? "..." : "Đăng ký"}
+            <Send className="h-3.5 w-3.5" />
+            {loading ? "..." : "Subscribe"}
           </Button>
         </form>
       </div>
