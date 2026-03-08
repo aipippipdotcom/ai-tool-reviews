@@ -20,10 +20,13 @@ const LoginPage = () => {
     const { error } = await signIn(email, password);
     if (error) {
       toast.error("Login failed. Check your credentials.");
-    } else {
-      toast.success("Welcome back!");
-      navigate("/admin");
+      setLoading(false);
+      return;
     }
+    // Wait briefly for auth state & admin check to settle
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    toast.success("Welcome back!");
+    navigate("/admin");
     setLoading(false);
   };
 
