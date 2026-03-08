@@ -18,7 +18,7 @@ const AboutPage = () => {
 
         <div className="space-y-6 text-muted-foreground leading-relaxed text-base">
           <p>
-            AIPipPip.com is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools for creators, marketers, startups, and digital professionals.
+            AIPipPip.net is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools for creators, marketers, startups, and digital professionals.
           </p>
           <p>
             We focus on tools that truly make an impact – across SEO &amp; Marketing, Video &amp; Image Generation, Writing Assistants, Music &amp; Voice, Productivity &amp; Automation, AI Assistants, Coding Tools, and No-Code/AI Builders.
