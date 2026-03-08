@@ -45,7 +45,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Bình luận đã được đăng!");
+      toast.success("Comment posted!");
       setName("");
       setContent("");
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
