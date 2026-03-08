@@ -37,7 +37,8 @@ const CoverImageUpload = ({ value, onChange }: CoverImageUploadProps) => {
     }
 
     setUploading(true);
-    const fileName = `covers/${Date.now()}-${file.name}`;
+    const safeFileName = sanitizeFileName(file.name);
+    const fileName = `covers/${Date.now()}-${safeFileName}`;
     const { data, error } = await supabase.storage
       .from("post-images")
       .upload(fileName, file);
