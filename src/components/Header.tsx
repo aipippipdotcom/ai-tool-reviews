@@ -32,6 +32,12 @@ const Header = () => {
           >
             Categories
           </Link>
+          <Link
+            to="/about"
+            className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-secondary"
+          >
+            About
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2">
