@@ -22,19 +22,19 @@ const Header = () => {
         <nav className="hidden md:flex items-center gap-1">
           <Link
             to="/"
-            className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-secondary"
+            className="px-3 py-2 text-sm font-bold text-foreground hover:text-primary transition-colors rounded-md hover:bg-secondary"
           >
             Home
           </Link>
           <Link
             to="/categories"
-            className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-secondary"
+            className="px-3 py-2 text-sm font-bold text-foreground hover:text-primary transition-colors rounded-md hover:bg-secondary"
           >
             Categories
           </Link>
           <Link
             to="/about"
-            className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-secondary"
+            className="px-3 py-2 text-sm font-bold text-foreground hover:text-primary transition-colors rounded-md hover:bg-secondary"
           >
             About
           </Link>

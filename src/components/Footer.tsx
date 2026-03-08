@@ -20,7 +20,7 @@ const Footer = () => {
             <Link to="/" className="flex items-center gap-2.5 mb-4">
               <img src={logo} alt="AIPipPip" className="h-7 w-7 rounded-lg" />
               <span className="font-display text-lg font-bold">
-                <span className="text-gradient">AI</span><span className="text-foreground">PipPip</span>
+                <span className="text-gradient">AI</span><span className="text-foreground">PipPip</span><span className="text-red-500">.Net</span>
               </span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
@@ -61,7 +61,7 @@ const Footer = () => {
 
         <div className="mt-14 pt-6 border-t border-border flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} AIPipPip. All rights reserved.
+            © {new Date().getFullYear()} AIPipPip.Net | All rights reserved.
           </p>
           <Link
             to="/login"
