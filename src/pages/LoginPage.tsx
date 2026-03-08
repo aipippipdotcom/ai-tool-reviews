@@ -31,7 +31,9 @@ const LoginPage = () => {
       return;
     }
     toast.success("Welcome back!");
-    // Loading will stay true until useEffect navigates away
+    // Don't navigate here - useEffect handles it when isAdmin becomes true
+    // But add a safety timeout to reset loading if something fails
+    setTimeout(() => setLoading(false), 3000);
   };
 
   return (
