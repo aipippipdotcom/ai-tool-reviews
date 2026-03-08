@@ -33,9 +33,9 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
     mutationFn: async () => {
       const trimmedName = name.trim();
       const trimmedContent = content.trim();
-      if (!trimmedName || !trimmedContent) throw new Error("Vui lòng nhập đầy đủ thông tin");
-      if (trimmedName.length > 100) throw new Error("Tên không được quá 100 ký tự");
-      if (trimmedContent.length > 2000) throw new Error("Nội dung không được quá 2000 ký tự");
+      if (!trimmedName || !trimmedContent) throw new Error("Please fill in all fields");
+      if (trimmedName.length > 100) throw new Error("Name must be under 100 characters");
+      if (trimmedContent.length > 2000) throw new Error("Content must be under 2000 characters");
 
       const { error } = await supabase.from("comments").insert({
         post_id: postId,
