@@ -29,7 +29,7 @@ const RelatedPosts = ({ currentPostId, categoryId, categoryName, categorySlug }:
 
   return (
     <section className="mt-16 pt-10 border-t border-border">
-      <h2 className="font-display text-2xl font-bold text-foreground mb-6">Bài viết liên quan</h2>
+      <h2 className="font-display text-2xl font-bold text-foreground mb-6">Related Posts</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => (
           <PostCard

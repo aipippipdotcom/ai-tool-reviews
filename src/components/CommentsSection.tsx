@@ -33,9 +33,9 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
     mutationFn: async () => {
       const trimmedName = name.trim();
       const trimmedContent = content.trim();
-      if (!trimmedName || !trimmedContent) throw new Error("Vui lòng nhập đầy đủ thông tin");
-      if (trimmedName.length > 100) throw new Error("Tên không được quá 100 ký tự");
-      if (trimmedContent.length > 2000) throw new Error("Nội dung không được quá 2000 ký tự");
+      if (!trimmedName || !trimmedContent) throw new Error("Please fill in all fields");
+      if (trimmedName.length > 100) throw new Error("Name must be under 100 characters");
+      if (trimmedContent.length > 2000) throw new Error("Content must be under 2000 characters");
 
       const { error } = await supabase.from("comments").insert({
         post_id: postId,
@@ -45,7 +45,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Bình luận đã được đăng!");
+      toast.success("Comment posted!");
       setName("");
       setContent("");
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
@@ -59,14 +59,14 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
     <section className="mt-16 pt-10 border-t border-border">
       <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
         <MessageSquare className="h-5 w-5 text-primary" />
-        Bình luận ({comments?.length ?? 0})
+        Comments ({comments?.length ?? 0})
       </h2>
 
       {/* Comment form */}
       <div className="rounded-xl border border-border bg-card p-5 mb-8">
         <div className="flex flex-col sm:flex-row gap-3 mb-3">
           <Input
-            placeholder="Tên của bạn"
+            placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={100}
@@ -74,7 +74,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
           />
         </div>
         <Textarea
-          placeholder="Viết bình luận..."
+          placeholder="Write a comment..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
           maxLength={2000}
@@ -87,7 +87,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
           size="sm"
         >
           <Send className="h-3.5 w-3.5 mr-1.5" />
-          {mutation.isPending ? "Đang gửi..." : "Gửi bình luận"}
+          {mutation.isPending ? "Posting..." : "Post Comment"}
         </Button>
       </div>
 
@@ -110,7 +110,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
           </div>
         ))}
         {comments?.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-6">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+          <p className="text-sm text-muted-foreground text-center py-6">No comments yet. Be the first!</p>
         )}
       </div>
     </section>
