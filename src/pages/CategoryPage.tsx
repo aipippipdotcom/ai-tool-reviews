@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PostCard from "@/components/PostCard";
 import { Helmet } from "react-helmet-async";
+import CategoryIcon from "@/components/CategoryIcon";
 
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
