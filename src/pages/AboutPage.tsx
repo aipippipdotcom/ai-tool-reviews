@@ -13,7 +13,7 @@ const AboutPage = () => {
       <Header />
       <main className="container mx-auto px-4 py-16 max-w-3xl">
         <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-8">
-          About <span className="text-gradient">AIPipPip</span>
+          About <span className="text-gradient">AI</span><span className="text-foreground">PipPip</span>
         </h1>
 
         <div className="space-y-6 text-muted-foreground leading-relaxed text-base">
