@@ -37,15 +37,15 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>AIPipPip - Review Công Cụ AI & Sản Phẩm Số</title>
+        <title>AIPipPip — AI Tool Reviews & Digital Product Comparisons</title>
         <meta
           name="description"
-          content="Review chuyên sâu về các công cụ AI, sản phẩm số hàng đầu. So sánh chi tiết giúp bạn chọn đúng tool phù hợp nhu cầu."
+          content="In-depth reviews and comparisons of the best AI tools and digital products. Find the right tool for your workflow."
         />
       </Helmet>
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-8">
+        <main className="flex-1 container mx-auto px-4 py-10">
           <HeroSection />
           {(categories ?? []).map((cat) => (
             <CategorySection

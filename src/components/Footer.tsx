@@ -1,28 +1,39 @@
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
+
+const categories = [
+  { name: "Video/Image Tools", slug: "video-image-tools" },
+  { name: "Marketing Tools", slug: "marketing-tools" },
+  { name: "Design/Code Tools", slug: "design-code-tools" },
+  { name: "Writing Tools", slug: "writing-tools" },
+  { name: "Voice/Music Tools", slug: "voice-music-tools" },
+  { name: "Assistance Tools", slug: "assistance-tools" },
+  { name: "EBook/PLR", slug: "ebook-plr" },
+];
 
 const Footer = () => {
   return (
-    <footer className="border-t border-border bg-card mt-16">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <span className="font-display text-xl font-bold text-gradient-primary">
-              AIPipPip
-            </span>
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-              Review chuyên sâu về các công cụ AI và sản phẩm số hàng đầu. Giúp bạn chọn đúng tool, tiết kiệm thời gian và chi phí.
+    <footer className="border-t border-border mt-20">
+      <div className="container mx-auto px-4 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+          <div className="md:col-span-4">
+            <Link to="/" className="flex items-center gap-2.5 mb-4">
+              <img src={logo} alt="AIPipPip" className="h-7 w-7 rounded-lg" />
+              <span className="font-display text-lg font-bold text-gradient">
+                AIPipPip
+              </span>
+            </Link>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+              In-depth reviews & comparisons of the best AI tools and digital products. Find the right tool, save time and money.
             </p>
           </div>
 
-          <div>
-            <h4 className="font-display font-semibold text-foreground mb-4">Danh mục</h4>
-            <ul className="space-y-2">
-              {[
-                { name: "Video/Image Tools", slug: "video-image-tools" },
-                { name: "Marketing Tools", slug: "marketing-tools" },
-                { name: "Design/Code Tools", slug: "design-code-tools" },
-                { name: "Writing Tools", slug: "writing-tools" },
-              ].map((cat) => (
+          <div className="md:col-span-4">
+            <h4 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider mb-4">
+              Categories
+            </h4>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {categories.map((cat) => (
                 <li key={cat.slug}>
                   <Link
                     to={`/category/${cat.slug}`}
@@ -35,35 +46,23 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div>
-            <h4 className="font-display font-semibold text-foreground mb-4">Thêm</h4>
-            <ul className="space-y-2">
-              {[
-                { name: "Voice/Music Tools", slug: "voice-music-tools" },
-                { name: "Assistance Tools", slug: "assistance-tools" },
-                { name: "EBook/PLR", slug: "ebook-plr" },
-              ].map((cat) => (
-                <li key={cat.slug}>
-                  <Link
-                    to={`/category/${cat.slug}`}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {cat.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <div className="md:col-span-4">
+            <h4 className="font-display font-semibold text-foreground text-sm uppercase tracking-wider mb-4">
+              About
+            </h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              AIPipPip helps creators, marketers, and developers discover the best AI-powered tools through honest, detailed reviews.
+            </p>
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-14 pt-6 border-t border-border flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} AIPipPip. All rights reserved.
           </p>
-          {/* Subtle admin login link */}
           <Link
             to="/login"
-            className="text-xs text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
+            className="text-muted-foreground/20 hover:text-muted-foreground/40 transition-colors text-xs select-none"
             aria-label="Admin"
           >
             ·

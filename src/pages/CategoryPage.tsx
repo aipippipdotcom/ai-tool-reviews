@@ -39,20 +39,23 @@ const CategoryPage = () => {
   return (
     <>
       <Helmet>
-        <title>{category?.name ?? "Danh mục"} - AIPipPip</title>
+        <title>{category?.name ?? "Category"} — AIPipPip</title>
         <meta
           name="description"
-          content={`Tổng hợp review ${category?.name ?? ""} - AIPipPip`}
+          content={`Browse all ${category?.name ?? ""} reviews on AIPipPip`}
         />
       </Helmet>
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="mb-8">
+        <main className="flex-1 container mx-auto px-4 py-10">
+          <div className="mb-10">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
               {category?.icon && <span>{category.icon}</span>}
               {category?.name}
             </h1>
+            <p className="text-muted-foreground mt-2">
+              Browse all reviews in this category
+            </p>
           </div>
           {posts && posts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -70,9 +73,9 @@ const CategoryPage = () => {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-center py-12">
-              Chưa có bài viết nào trong danh mục này.
-            </p>
+            <div className="text-center py-20 rounded-xl border border-border bg-card">
+              <p className="text-muted-foreground">No posts in this category yet.</p>
+            </div>
           )}
         </main>
         <Footer />

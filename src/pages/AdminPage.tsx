@@ -90,10 +90,7 @@ const AdminPage = () => {
       };
 
       if (editingPost) {
-        const { error } = await supabase
-          .from("posts")
-          .update(postData)
-          .eq("id", editingPost);
+        const { error } = await supabase.from("posts").update(postData).eq("id", editingPost);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("posts").insert(postData);
@@ -101,13 +98,13 @@ const AdminPage = () => {
       }
     },
     onSuccess: () => {
-      toast.success(editingPost ? "Cập nhật thành công!" : "Tạo bài viết thành công!");
+      toast.success(editingPost ? "Post updated!" : "Post created!");
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
       queryClient.invalidateQueries({ queryKey: ["posts-home"] });
       resetForm();
     },
     onError: (err: Error) => {
-      toast.error("Lỗi: " + err.message);
+      toast.error("Error: " + err.message);
     },
   });
 
@@ -117,7 +114,7 @@ const AdminPage = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Đã xóa bài viết!");
+      toast.success("Post deleted!");
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
     },
   });
@@ -154,28 +151,28 @@ const AdminPage = () => {
   if (!user || !isAdmin) return <Navigate to="/login" replace />;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="font-display text-2xl font-bold text-foreground mb-6">Quản trị</h1>
+      <main className="flex-1 container mx-auto px-4 py-10">
+        <h1 className="font-display text-2xl font-bold text-foreground mb-8">Dashboard</h1>
 
         <Tabs defaultValue="editor">
-          <TabsList>
-            <TabsTrigger value="editor">
+          <TabsList className="bg-secondary border border-border">
+            <TabsTrigger value="editor" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
               <Pencil className="h-3.5 w-3.5 mr-1.5" />
-              {editingPost ? "Sửa bài" : "Viết bài"}
+              {editingPost ? "Edit Post" : "New Post"}
             </TabsTrigger>
-            <TabsTrigger value="posts">
+            <TabsTrigger value="posts" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
               <Eye className="h-3.5 w-3.5 mr-1.5" />
-              Bài viết ({posts?.length ?? 0})
+              Posts ({posts?.length ?? 0})
             </TabsTrigger>
-            <TabsTrigger value="subscribers">
+            <TabsTrigger value="subscribers" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
               <Users className="h-3.5 w-3.5 mr-1.5" />
               Subscribers ({subscribers?.length ?? 0})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="editor" className="mt-6">
+          <TabsContent value="editor" className="mt-8">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -185,7 +182,7 @@ const AdminPage = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Tiêu đề *</Label>
+                  <Label className="text-muted-foreground">Title *</Label>
                   <Input
                     value={title}
                     onChange={(e) => {
@@ -193,19 +190,20 @@ const AdminPage = () => {
                       if (!editingPost) setSlug(generateSlug(e.target.value));
                     }}
                     required
+                    className="bg-secondary border-border"
                   />
                 </div>
                 <div>
-                  <Label>Slug (URL)</Label>
-                  <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
+                  <Label className="text-muted-foreground">Slug (URL)</Label>
+                  <Input value={slug} onChange={(e) => setSlug(e.target.value)} className="bg-secondary border-border" />
                 </div>
               </div>
 
               <div>
-                <Label>Danh mục *</Label>
+                <Label className="text-muted-foreground">Category *</Label>
                 <Select value={categoryId} onValueChange={setCategoryId} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn danh mục" />
+                  <SelectTrigger className="bg-secondary border-border">
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories?.map((c) => (
@@ -218,152 +216,155 @@ const AdminPage = () => {
               </div>
 
               <div>
-                <Label>Tóm tắt</Label>
-                <Textarea
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                  rows={2}
-                />
+                <Label className="text-muted-foreground">Excerpt</Label>
+                <Textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className="bg-secondary border-border" />
               </div>
 
               <div>
-                <Label>Nội dung (HTML) *</Label>
+                <Label className="text-muted-foreground">Content (HTML) *</Label>
                 <Textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={15}
                   required
-                  className="font-mono text-sm"
+                  className="font-mono text-sm bg-secondary border-border"
                 />
               </div>
 
               <div>
-                <Label>Ảnh bìa (URL)</Label>
-                <Input value={coverImage} onChange={(e) => setCoverImage(e.target.value)} />
+                <Label className="text-muted-foreground">Cover Image URL</Label>
+                <Input value={coverImage} onChange={(e) => setCoverImage(e.target.value)} className="bg-secondary border-border" />
               </div>
 
-              {/* SEO Fields */}
-              <div className="border border-border rounded-lg p-4 space-y-4">
-                <h3 className="font-display font-semibold text-sm text-muted-foreground">
-                  🔍 SEO Settings
+              <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                <h3 className="font-display font-semibold text-sm text-primary uppercase tracking-wider">
+                  SEO Settings
                 </h3>
                 <div>
-                  <Label>Meta Title</Label>
+                  <Label className="text-muted-foreground">Meta Title</Label>
                   <Input
                     value={metaTitle}
                     onChange={(e) => setMetaTitle(e.target.value)}
-                    placeholder="Tiêu đề SEO (tối đa 60 ký tự)"
+                    placeholder="SEO title (max 60 chars)"
                     maxLength={60}
+                    className="bg-secondary border-border"
                   />
                   <p className="text-xs text-muted-foreground mt-1">{metaTitle.length}/60</p>
                 </div>
                 <div>
-                  <Label>Meta Description</Label>
+                  <Label className="text-muted-foreground">Meta Description</Label>
                   <Textarea
                     value={metaDescription}
                     onChange={(e) => setMetaDescription(e.target.value)}
-                    placeholder="Mô tả SEO (tối đa 160 ký tự)"
+                    placeholder="SEO description (max 160 chars)"
                     maxLength={160}
                     rows={2}
+                    className="bg-secondary border-border"
                   />
                   <p className="text-xs text-muted-foreground mt-1">{metaDescription.length}/160</p>
                 </div>
                 <div>
-                  <Label>Keywords</Label>
+                  <Label className="text-muted-foreground">Keywords</Label>
                   <Input
                     value={metaKeywords}
                     onChange={(e) => setMetaKeywords(e.target.value)}
                     placeholder="ai tools, review, digital products"
+                    className="bg-secondary border-border"
                   />
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <Switch checked={published} onCheckedChange={setPublished} />
-                <Label>Xuất bản</Label>
+                <Label className="text-foreground">Publish</Label>
               </div>
 
               <div className="flex gap-3">
-                <Button type="submit" className="bg-gradient-primary" disabled={saveMutation.isPending}>
-                  {saveMutation.isPending ? "Đang lưu..." : editingPost ? "Cập nhật" : "Tạo bài viết"}
+                <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 glow" disabled={saveMutation.isPending}>
+                  {saveMutation.isPending ? "Saving..." : editingPost ? "Update Post" : "Create Post"}
                 </Button>
                 {editingPost && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Hủy
+                  <Button type="button" variant="outline" onClick={resetForm} className="border-border text-muted-foreground hover:text-foreground">
+                    Cancel
                   </Button>
                 )}
               </div>
             </form>
           </TabsContent>
 
-          <TabsContent value="posts" className="mt-6">
+          <TabsContent value="posts" className="mt-8">
             <div className="space-y-3">
               {posts?.map((post) => (
                 <div
                   key={post.id}
-                  className="flex items-center justify-between p-4 bg-card rounded-lg shadow-card"
+                  className="flex items-center justify-between p-4 rounded-xl border border-border bg-card"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-foreground truncate">{post.title}</h3>
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
+                        className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
                           post.published
-                            ? "bg-accent/20 text-accent"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-primary/10 text-primary"
+                            : "bg-secondary text-muted-foreground"
                         }`}
                       >
-                        {post.published ? "Đã xuất bản" : "Nháp"}
+                        {post.published ? "Published" : "Draft"}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {(post.categories as any)?.name} · {format(new Date(post.created_at), "dd/MM/yyyy")}
+                      {(post.categories as any)?.name} · {format(new Date(post.created_at), "MMM d, yyyy")}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex items-center gap-1 ml-4">
                     {post.published && (
                       <Link to={`/post/${post.slug}`}>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
                       </Link>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => editPost(post)}>
+                    <Button variant="ghost" size="sm" onClick={() => editPost(post)} className="text-muted-foreground hover:text-foreground">
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        if (confirm("Xóa bài viết này?")) deleteMutation.mutate(post.id);
+                        if (confirm("Delete this post?")) deleteMutation.mutate(post.id);
                       }}
+                      className="text-muted-foreground hover:text-destructive"
                     >
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
               ))}
               {!posts?.length && (
-                <p className="text-muted-foreground text-center py-8">Chưa có bài viết nào.</p>
+                <div className="text-center py-12 rounded-xl border border-border bg-card">
+                  <p className="text-muted-foreground">No posts yet. Create your first one!</p>
+                </div>
               )}
             </div>
           </TabsContent>
 
-          <TabsContent value="subscribers" className="mt-6">
+          <TabsContent value="subscribers" className="mt-8">
             <div className="space-y-2">
               {subscribers?.map((sub) => (
                 <div
                   key={sub.id}
-                  className="flex items-center justify-between p-3 bg-card rounded-lg shadow-card"
+                  className="flex items-center justify-between p-4 rounded-xl border border-border bg-card"
                 >
                   <span className="text-sm text-foreground">{sub.email}</span>
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(sub.subscribed_at), "dd/MM/yyyy HH:mm")}
+                    {format(new Date(sub.subscribed_at), "MMM d, yyyy 'at' HH:mm")}
                   </span>
                 </div>
               ))}
               {!subscribers?.length && (
-                <p className="text-muted-foreground text-center py-8">Chưa có subscriber nào.</p>
+                <div className="text-center py-12 rounded-xl border border-border bg-card">
+                  <p className="text-muted-foreground">No subscribers yet.</p>
+                </div>
               )}
             </div>
           </TabsContent>
