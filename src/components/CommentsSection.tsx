@@ -110,7 +110,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
           </div>
         ))}
         {comments?.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-6">Chưa có bình luận nào. Hãy là người đầu tiên!</p>
+          <p className="text-sm text-muted-foreground text-center py-6">No comments yet. Be the first!</p>
         )}
       </div>
     </section>
