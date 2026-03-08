@@ -41,11 +41,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdmin(session.user.id);
+        await checkAdmin(session.user.id);
       }
       setLoading(false);
     });
