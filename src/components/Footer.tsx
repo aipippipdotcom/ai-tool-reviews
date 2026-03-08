@@ -62,10 +62,10 @@ const Footer = () => {
           </p>
           <Link
             to="/login"
-            className="text-destructive/40 hover:text-destructive/70 transition-colors text-xs select-none"
+            className="text-destructive hover:text-destructive/80 transition-colors text-sm font-bold select-none"
             aria-label="Admin"
           >
-            ·
+            •
           </Link>
         </div>
       </div>
