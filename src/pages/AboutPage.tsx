@@ -8,7 +8,7 @@ const AboutPage = () => {
     <>
       <Helmet>
         <title>About AIPipPip – AI Tools Review Platform</title>
-        <meta name="description" content="AIPipPip.com is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools." />
+        <meta name="description" content="AIPipPip.net is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools." />
       </Helmet>
       <Header />
       <main className="container mx-auto px-4 py-16 max-w-3xl">
