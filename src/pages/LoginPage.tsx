@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,15 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, isAdmin, user } = useAuth();
   const navigate = useNavigate();
+
+  // Auto-navigate when admin status is confirmed
+  useEffect(() => {
+    if (user && isAdmin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [user, isAdmin, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,11 +31,7 @@ const LoginPage = () => {
       return;
     }
     toast.success("Welcome back!");
-    // Navigate after a brief delay to let auth state + admin check settle
-    setTimeout(() => {
-      navigate("/admin");
-      setLoading(false);
-    }, 800);
+    // Loading will stay true until useEffect navigates away
   };
 
   return (
