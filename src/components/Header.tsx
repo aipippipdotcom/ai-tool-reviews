@@ -14,8 +14,8 @@ const Header = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
           <img src={logo} alt="AIPipPip" className="h-8 w-8 rounded-lg" />
-          <span className="font-display text-xl font-bold text-gradient">
-            AIPipPip
+          <span className="font-display text-xl font-bold">
+            <span className="text-gradient">AI</span><span className="text-foreground">PipPip</span>
           </span>
         </Link>
 

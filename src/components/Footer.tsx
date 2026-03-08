@@ -19,8 +19,8 @@ const Footer = () => {
           <div className="md:col-span-4">
             <Link to="/" className="flex items-center gap-2.5 mb-4">
               <img src={logo} alt="AIPipPip" className="h-7 w-7 rounded-lg" />
-              <span className="font-display text-lg font-bold text-gradient">
-                AIPipPip
+              <span className="font-display text-lg font-bold">
+                <span className="text-gradient">AI</span><span className="text-foreground">PipPip</span>
               </span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
