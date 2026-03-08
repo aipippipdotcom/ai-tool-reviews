@@ -23,11 +23,12 @@ const LoginPage = () => {
       setLoading(false);
       return;
     }
-    // Wait briefly for auth state & admin check to settle
-    await new Promise((resolve) => setTimeout(resolve, 500));
     toast.success("Welcome back!");
-    navigate("/admin");
-    setLoading(false);
+    // Navigate after a brief delay to let auth state + admin check settle
+    setTimeout(() => {
+      navigate("/admin");
+      setLoading(false);
+    }, 800);
   };
 
   return (
