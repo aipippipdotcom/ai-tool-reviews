@@ -59,7 +59,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
     <section className="mt-16 pt-10 border-t border-border">
       <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
         <MessageSquare className="h-5 w-5 text-primary" />
-        Bình luận ({comments?.length ?? 0})
+        Comments ({comments?.length ?? 0})
       </h2>
 
       {/* Comment form */}
