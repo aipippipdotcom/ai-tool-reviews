@@ -1,11 +1,8 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
-import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -80,18 +77,10 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4, 5] },
-        // Disable built-in link/underline so we can use custom configured ones
-        link: false,
-        underline: false,
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: { class: "text-primary underline" },
       }),
       Image.configure({
         HTMLAttributes: { class: "rounded-lg max-w-full" },
       }),
-      Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "Start writing your review..." }),
     ],
