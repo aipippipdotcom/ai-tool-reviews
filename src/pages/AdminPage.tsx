@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
+import RichTextEditor from "@/components/RichTextEditor";
+import CoverImageUpload from "@/components/CoverImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -178,20 +180,24 @@ const AdminPage = () => {
                 e.preventDefault();
                 saveMutation.mutate();
               }}
-              className="max-w-3xl space-y-5"
+              className="max-w-4xl space-y-6"
             >
+              {/* Title & Slug */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Title *</Label>
                   <Input
                     value={title}
                     onChange={(e) => {
-                      setTitle(e.target.value);
-                      if (!editingPost) setSlug(generateSlug(e.target.value));
+                      const val = e.target.value.slice(0, 200);
+                      setTitle(val);
+                      if (!editingPost) setSlug(generateSlug(val));
                     }}
                     required
+                    maxLength={200}
                     className="bg-secondary border-border"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">{title.length}/200</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Slug (URL)</Label>
@@ -199,6 +205,7 @@ const AdminPage = () => {
                 </div>
               </div>
 
+              {/* Category */}
               <div>
                 <Label className="text-muted-foreground">Category *</Label>
                 <Select value={categoryId} onValueChange={setCategoryId} required>
@@ -208,34 +215,32 @@ const AdminPage = () => {
                   <SelectContent>
                     {categories?.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
-                        {c.icon} {c.name}
+                        {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
+              {/* Cover Image Upload */}
+              <div>
+                <Label className="text-muted-foreground mb-2 block">Cover Image</Label>
+                <CoverImageUpload value={coverImage} onChange={setCoverImage} />
+              </div>
+
+              {/* Excerpt */}
               <div>
                 <Label className="text-muted-foreground">Excerpt</Label>
-                <Textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className="bg-secondary border-border" />
+                <Textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className="bg-secondary border-border" placeholder="Short summary shown on cards..." />
               </div>
 
+              {/* Rich Text Content */}
               <div>
-                <Label className="text-muted-foreground">Content (HTML) *</Label>
-                <Textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={15}
-                  required
-                  className="font-mono text-sm bg-secondary border-border"
-                />
+                <Label className="text-muted-foreground mb-2 block">Content *</Label>
+                <RichTextEditor content={content} onChange={setContent} />
               </div>
 
-              <div>
-                <Label className="text-muted-foreground">Cover Image URL</Label>
-                <Input value={coverImage} onChange={(e) => setCoverImage(e.target.value)} className="bg-secondary border-border" />
-              </div>
-
+              {/* SEO Settings */}
               <div className="rounded-xl border border-border bg-card p-5 space-y-4">
                 <h3 className="font-display font-semibold text-sm text-primary uppercase tracking-wider">
                   SEO Settings
@@ -244,24 +249,24 @@ const AdminPage = () => {
                   <Label className="text-muted-foreground">Meta Title</Label>
                   <Input
                     value={metaTitle}
-                    onChange={(e) => setMetaTitle(e.target.value)}
-                    placeholder="SEO title (max 60 chars)"
-                    maxLength={60}
+                    onChange={(e) => setMetaTitle(e.target.value.slice(0, 100))}
+                    placeholder="SEO title (max 100 chars)"
+                    maxLength={100}
                     className="bg-secondary border-border"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">{metaTitle.length}/60</p>
+                  <p className="text-xs text-muted-foreground mt-1">{metaTitle.length}/100</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Meta Description</Label>
                   <Textarea
                     value={metaDescription}
-                    onChange={(e) => setMetaDescription(e.target.value)}
-                    placeholder="SEO description (max 160 chars)"
-                    maxLength={160}
+                    onChange={(e) => setMetaDescription(e.target.value.slice(0, 200))}
+                    placeholder="SEO description (max 200 chars)"
+                    maxLength={200}
                     rows={2}
                     className="bg-secondary border-border"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">{metaDescription.length}/160</p>
+                  <p className="text-xs text-muted-foreground mt-1">{metaDescription.length}/200</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Keywords</Label>
@@ -274,11 +279,13 @@ const AdminPage = () => {
                 </div>
               </div>
 
+              {/* Publish toggle */}
               <div className="flex items-center gap-3">
                 <Switch checked={published} onCheckedChange={setPublished} />
                 <Label className="text-foreground">Publish</Label>
               </div>
 
+              {/* Actions */}
               <div className="flex gap-3">
                 <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 glow" disabled={saveMutation.isPending}>
                   {saveMutation.isPending ? "Saving..." : editingPost ? "Update Post" : "Create Post"}
@@ -295,20 +302,11 @@ const AdminPage = () => {
           <TabsContent value="posts" className="mt-8">
             <div className="space-y-3">
               {posts?.map((post) => (
-                <div
-                  key={post.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-border bg-card"
-                >
+                <div key={post.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium text-foreground truncate">{post.title}</h3>
-                      <span
-                        className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
-                          post.published
-                            ? "bg-primary/10 text-primary"
-                            : "bg-secondary text-muted-foreground"
-                        }`}
-                      >
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${post.published ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>
                         {post.published ? "Published" : "Draft"}
                       </span>
                     </div>
@@ -330,9 +328,7 @@ const AdminPage = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        if (confirm("Delete this post?")) deleteMutation.mutate(post.id);
-                      }}
+                      onClick={() => { if (confirm("Delete this post?")) deleteMutation.mutate(post.id); }}
                       className="text-muted-foreground hover:text-destructive"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -351,10 +347,7 @@ const AdminPage = () => {
           <TabsContent value="subscribers" className="mt-8">
             <div className="space-y-2">
               {subscribers?.map((sub) => (
-                <div
-                  key={sub.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-border bg-card"
-                >
+                <div key={sub.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
                   <span className="text-sm text-foreground">{sub.email}</span>
                   <span className="text-xs text-muted-foreground">
                     {format(new Date(sub.subscribed_at), "MMM d, yyyy 'at' HH:mm")}
