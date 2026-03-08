@@ -22,6 +22,11 @@ const PostPage = () => {
         .eq("slug", slug!)
         .eq("published", true)
         .single();
+
+      if (data) {
+        await supabase.rpc("increment_view_count", { post_slug: slug });
+      }
+
       return data;
     },
     enabled: !!slug,

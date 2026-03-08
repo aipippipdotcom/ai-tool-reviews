@@ -58,7 +58,7 @@ const AdminPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("posts")
-        .select("*, categories(name)")
+        .select("*, categories(name), view_count")
         .order("created_at", { ascending: false });
       return data ?? [];
     },
@@ -311,7 +311,7 @@ const AdminPage = () => {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {(post.categories as any)?.name} · {format(new Date(post.created_at), "MMM d, yyyy")}
+                      {(post.categories as any)?.name} · {format(new Date(post.created_at), "MMM d, yyyy")} · 👁 {post.view_count ?? 0} views
                     </p>
                   </div>
                   <div className="flex items-center gap-1 ml-4">
