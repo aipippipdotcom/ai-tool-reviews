@@ -136,7 +136,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         return;
       }
 
-      const fileName = `content/${Date.now()}-${file.name}`;
+      const safeFileName = sanitizeFileName(file.name);
+      const fileName = `content/${Date.now()}-${safeFileName}`;
       const { data, error } = await supabase.storage
         .from("post-images")
         .upload(fileName, file);
