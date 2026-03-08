@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import RelatedPosts from "@/components/RelatedPosts";
+import CommentsSection from "@/components/CommentsSection";
 import { format } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 import { Helmet } from "react-helmet-async";
@@ -94,6 +96,19 @@ const PostPage = () => {
                 className="prose prose-invert prose-lg max-w-none leading-relaxed [&_h2]:font-display [&_h2]:text-foreground [&_h3]:font-display [&_h3]:text-foreground [&_p]:text-muted-foreground [&_a]:text-primary [&_strong]:text-foreground [&_li]:text-muted-foreground"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
+
+              {/* Related posts */}
+              {category && (
+                <RelatedPosts
+                  currentPostId={post.id}
+                  categoryId={post.category_id}
+                  categoryName={category.name}
+                  categorySlug={category.slug}
+                />
+              )}
+
+              {/* Comments */}
+              <CommentsSection postId={post.id} />
             </article>
           ) : (
             <div className="text-center py-20">

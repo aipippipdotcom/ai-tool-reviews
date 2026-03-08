@@ -163,9 +163,9 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   const s = 15;
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 p-2 border-b border-border bg-secondary/50">
+    <div className="rounded-xl border border-border bg-card overflow-hidden relative">
+      {/* Toolbar - sticky within editor */}
+      <div className="flex flex-wrap items-center gap-0.5 p-2 border-b border-border bg-secondary/50 sticky top-0 z-10">
         {/* Text formatting */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold">
           <Bold size={s} />
