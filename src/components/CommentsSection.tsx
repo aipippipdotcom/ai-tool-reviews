@@ -66,7 +66,7 @@ const CommentsSection = ({ postId }: CommentsSectionProps) => {
       <div className="rounded-xl border border-border bg-card p-5 mb-8">
         <div className="flex flex-col sm:flex-row gap-3 mb-3">
           <Input
-            placeholder="Tên của bạn"
+            placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={100}
