@@ -34,6 +34,7 @@ const AdminPage = () => {
   const queryClient = useQueryClient();
 
   const [editingPost, setEditingPost] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("editor");
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [excerpt, setExcerpt] = useState("");
@@ -137,6 +138,7 @@ const AdminPage = () => {
 
   const editPost = (post: any) => {
     setEditingPost(post.id);
+    setActiveTab("editor");
     setTitle(post.title);
     setSlug(post.slug);
     setExcerpt(post.excerpt ?? "");
@@ -158,7 +160,7 @@ const AdminPage = () => {
       <main className="flex-1 container mx-auto px-4 py-10">
         <h1 className="font-display text-2xl font-bold text-foreground mb-8">Dashboard</h1>
 
-        <Tabs defaultValue="editor">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-secondary border border-border">
             <TabsTrigger value="editor" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
               <Pencil className="h-3.5 w-3.5 mr-1.5" />
