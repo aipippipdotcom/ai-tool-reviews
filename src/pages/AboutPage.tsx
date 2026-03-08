@@ -8,7 +8,7 @@ const AboutPage = () => {
     <>
       <Helmet>
         <title>About AIPipPip – AI Tools Review Platform</title>
-        <meta name="description" content="AIPipPip.com is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools." />
+        <meta name="description" content="AIPipPip.net is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools." />
       </Helmet>
       <Header />
       <main className="container mx-auto px-4 py-16 max-w-3xl">
@@ -18,7 +18,7 @@ const AboutPage = () => {
 
         <div className="space-y-6 text-muted-foreground leading-relaxed text-base">
           <p>
-            AIPipPip.com is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools for creators, marketers, startups, and digital professionals.
+            AIPipPip.net is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools for creators, marketers, startups, and digital professionals.
           </p>
           <p>
             We focus on tools that truly make an impact – across SEO &amp; Marketing, Video &amp; Image Generation, Writing Assistants, Music &amp; Voice, Productivity &amp; Automation, AI Assistants, Coding Tools, and No-Code/AI Builders.
@@ -27,7 +27,7 @@ const AboutPage = () => {
             Our mission is to help users work smarter, save time, and achieve better results by choosing AI solutions that deliver real performance and value – not trends, but tools that empower creativity, streamline workflows, and drive sustainable growth.
           </p>
           <p>
-            At AIPipPip.com, every review is crafted with clarity, transparency, and practical insight – enabling creators, entrepreneurs, and business owners to confidently adopt AI and unlock new opportunities for innovation.
+            At AIPipPip.net, every review is crafted with clarity, transparency, and practical insight – enabling creators, entrepreneurs, and business owners to confidently adopt AI and unlock new opportunities for innovation.
           </p>
         </div>
 
