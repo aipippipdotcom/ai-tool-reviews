@@ -41,11 +41,11 @@ const AboutPage = () => {
 
           <div className="flex flex-col gap-4">
             <a
-              href="mailto:aipippipinfo@gmail.com"
+              href="mailto:admin@aipippip.net"
               className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium"
             >
               <Mail className="h-5 w-5" />
-              aipippipinfo@gmail.com
+              admin@aipippip.net
             </a>
 
             <div className="flex items-center gap-4">
