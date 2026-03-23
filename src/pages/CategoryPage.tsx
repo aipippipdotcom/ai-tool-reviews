@@ -40,6 +40,7 @@ const CategoryPage = () => {
   return (
     <>
       <Helmet>
+        <link rel="canonical" href={`https://aipippip.net/category/${slug}`} />
         <title>{category?.name ?? "Category"} — AIPipPip</title>
         <meta
           name="description"

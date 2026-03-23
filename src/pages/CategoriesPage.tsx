@@ -22,6 +22,7 @@ const CategoriesPage = () => {
   return (
     <>
       <Helmet>
+        <link rel="canonical" href="https://aipippip.net/categories" />
         <title>All Categories — AIPipPip</title>
         <meta name="description" content="Browse all AI tool review categories on AIPipPip" />
       </Helmet>

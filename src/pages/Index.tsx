@@ -38,6 +38,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
+        <link rel="canonical" href="https://aipippip.net" />
         <title>AIPipPip — AI Tool Reviews & Digital Product Comparisons</title>
         <meta
           name="description"
