@@ -38,6 +38,7 @@ const PostPage = () => {
     <>
       <Helmet>
         <title>{post?.meta_title || post?.title || "Article"} — AIPipPip</title>
+        <link rel="canonical" href={`https://aipippip.net/post/${slug}`} />
         <meta
           name="description"
           content={post?.meta_description || post?.excerpt || ""}
