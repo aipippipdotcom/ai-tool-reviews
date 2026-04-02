@@ -52,11 +52,21 @@ const PostPage = () => {
             "@type": "Article",
             headline: post?.title,
             description: post?.meta_description || post?.excerpt,
+            url: `https://aipippip.net/post/${slug}`,
+            image: post?.cover_image || "https://aipippip.net/og-image.png",
             datePublished: post?.created_at,
             dateModified: post?.updated_at,
+            author: {
+              "@type": "Person",
+              name: "AIPipPip",
+            },
             publisher: {
               "@type": "Organization",
               name: "AIPipPip",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://aipippip.net/favicon.png",
+              },
             },
           })}
         </script>
