@@ -59,6 +59,7 @@ const PostPage = () => {
             author: {
               "@type": "Person",
               name: "AIPipPip",
+              url: "https://aipippip.net/about",
             },
             publisher: {
               "@type": "Organization",
