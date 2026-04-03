@@ -196,7 +196,7 @@ const AdminPage = () => {
                       if (!editingPost) setSlug(generateSlug(val));
                     }}
                     required
-                    maxLength={200}
+                    
                     className="bg-secondary border-border"
                   />
                   <p className="text-xs text-muted-foreground mt-1">{title.length}/200</p>
@@ -251,24 +251,24 @@ const AdminPage = () => {
                   <Label className="text-muted-foreground">Meta Title</Label>
                   <Input
                     value={metaTitle}
-                    onChange={(e) => setMetaTitle(e.target.value.slice(0, 100))}
-                    placeholder="SEO title (max 100 chars)"
-                    maxLength={100}
+                    onChange={(e) => setMetaTitle(e.target.value)}
+                    placeholder="SEO title"
+                    
                     className="bg-secondary border-border"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">{metaTitle.length}/100</p>
+                  <p className="text-xs text-muted-foreground mt-1">{metaTitle.length} chars</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Meta Description</Label>
                   <Textarea
                     value={metaDescription}
-                    onChange={(e) => setMetaDescription(e.target.value.slice(0, 200))}
-                    placeholder="SEO description (max 200 chars)"
-                    maxLength={200}
+                    onChange={(e) => setMetaDescription(e.target.value)}
+                    placeholder="SEO description"
+                    
                     rows={2}
                     className="bg-secondary border-border"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">{metaDescription.length}/200</p>
+                  <p className="text-xs text-muted-foreground mt-1">{metaDescription.length} chars</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Keywords</Label>
