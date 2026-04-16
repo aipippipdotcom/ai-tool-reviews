@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 .env
 .env.local
+migrate.env
+migrate_to_imagekit.py
+migration_results.json
+venv/

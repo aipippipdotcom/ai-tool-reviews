@@ -1,8 +1,10 @@
 import { useState, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { X, Image as ImageIcon } from "lucide-react";
+
+const IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/aipippipdotnet";
+const IMAGEKIT_PUBLIC_KEY = "public_A2mRaWx/5MXyfDcJVmivMP4UMss=";
 
 const sanitizeFileName = (name: string) =>
   name
@@ -37,38 +39,59 @@ const CoverImageUpload = ({ value, onChange }: CoverImageUploadProps) => {
     }
 
     setUploading(true);
-    const safeFileName = sanitizeFileName(file.name);
-    const fileName = `covers/${Date.now()}-${safeFileName}`;
-    const { data, error } = await supabase.storage
-      .from("post-images")
-      .upload(fileName, file);
 
-    if (error) {
-      toast.error("Upload failed: " + error.message);
+    try {
+      const safeFileName = sanitizeFileName(file.name);
+      const fileName = `${Date.now()}-${safeFileName}`;
+
+      // Lấy auth signature từ ImageKit
+      const authRes = await fetch(
+        `https://upload.imagekit.io/api/v1/files/upload`,
+        {
+          method: "POST",
+          headers: {
+            Authorization:
+              "Basic " +
+              btoa(import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY + ":"),
+          },
+          body: (() => {
+            const fd = new FormData();
+            fd.append("file", file);
+            fd.append("fileName", fileName);
+            fd.append("folder", "/post-images/covers");
+            fd.append("useUniqueFileName", "false");
+            return fd;
+          })(),
+        }
+      );
+
+      if (!authRes.ok) {
+        const err = await authRes.json();
+        throw new Error(err.message || "Upload failed");
+      }
+
+      const data = await authRes.json();
+      onChange(data.url);
+      toast.success("Cover image uploaded!");
+    } catch (err: any) {
+      toast.error("Upload failed: " + err.message);
+    } finally {
       setUploading(false);
-      return;
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
-
-    const { data: urlData } = supabase.storage
-      .from("post-images")
-      .getPublicUrl(data.path);
-
-    onChange(urlData.publicUrl);
-    toast.success("Cover image uploaded!");
-    setUploading(false);
-
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removeCover = () => {
-    onChange("");
-  };
+  const removeCover = () => onChange("");
 
   return (
     <div>
       {value ? (
         <div className="relative rounded-xl overflow-hidden border border-border">
-          <img src={value} alt="Cover" className="w-full aspect-video object-cover" />
+          <img
+            src={value}
+            alt="Cover"
+            className="w-full aspect-video object-cover"
+          />
           <button
             type="button"
             onClick={removeCover}
@@ -92,8 +115,12 @@ const CoverImageUpload = ({ value, onChange }: CoverImageUploadProps) => {
                 <ImageIcon className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-foreground">Upload cover image</p>
-                <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WEBP up to 10MB</p>
+                <p className="text-sm font-medium text-foreground">
+                  Upload cover image
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PNG, JPG, WEBP up to 10MB
+                </p>
               </div>
             </>
           )}
