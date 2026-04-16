@@ -29,6 +29,32 @@ const generateSlug = (title: string) =>
     .replace(/-+/g, "-")
     .trim();
 
+const deleteImageFromImageKit = async (imageUrl: string) => {
+  if (!imageUrl || !imageUrl.includes("ik.imagekit.io")) return;
+  try {
+    const filePath = imageUrl.split("/aipippipdotnet")[1];
+    const searchRes = await fetch(
+      `https://api.imagekit.io/v1/files?path=${encodeURIComponent(filePath)}`,
+      {
+        headers: {
+          Authorization: "Basic " + btoa(import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY + ":"),
+        },
+      }
+    );
+    const files = await searchRes.json();
+    if (!files?.length) return;
+    const fileId = files[0].fileId;
+    await fetch(`https://api.imagekit.io/v1/files/${fileId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: "Basic " + btoa(import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY + ":"),
+      },
+    });
+  } catch (err) {
+    console.error("Failed to delete image from ImageKit:", err);
+  }
+};
+
 const AdminPage = () => {
   const { user, isAdmin, loading } = useAuth();
   const queryClient = useQueryClient();
@@ -112,8 +138,11 @@ const AdminPage = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("posts").delete().eq("id", id);
+    mutationFn: async (post: { id: string; cover_image?: string }) => {
+      if (post.cover_image) {
+        await deleteImageFromImageKit(post.cover_image);
+      }
+      const { error } = await supabase.from("posts").delete().eq("id", post.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -184,7 +213,6 @@ const AdminPage = () => {
               }}
               className="max-w-4xl space-y-6"
             >
-              {/* Title & Slug */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Title *</Label>
@@ -196,7 +224,6 @@ const AdminPage = () => {
                       if (!editingPost) setSlug(generateSlug(val));
                     }}
                     required
-                    
                     className="bg-secondary border-border"
                   />
                   <p className="text-xs text-muted-foreground mt-1">{title.length}/200</p>
@@ -207,7 +234,6 @@ const AdminPage = () => {
                 </div>
               </div>
 
-              {/* Category */}
               <div>
                 <Label className="text-muted-foreground">Category *</Label>
                 <Select value={categoryId} onValueChange={setCategoryId} required>
@@ -224,25 +250,21 @@ const AdminPage = () => {
                 </Select>
               </div>
 
-              {/* Cover Image Upload */}
               <div>
                 <Label className="text-muted-foreground mb-2 block">Cover Image</Label>
                 <CoverImageUpload value={coverImage} onChange={setCoverImage} />
               </div>
 
-              {/* Excerpt */}
               <div>
                 <Label className="text-muted-foreground">Excerpt</Label>
                 <Textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={2} className="bg-secondary border-border" placeholder="Short summary shown on cards..." />
               </div>
 
-              {/* Rich Text Content */}
               <div>
                 <Label className="text-muted-foreground mb-2 block">Content *</Label>
                 <RichTextEditor content={content} onChange={setContent} />
               </div>
 
-              {/* SEO Settings */}
               <div className="rounded-xl border border-border bg-card p-5 space-y-4">
                 <h3 className="font-display font-semibold text-sm text-primary uppercase tracking-wider">
                   SEO Settings
@@ -253,7 +275,6 @@ const AdminPage = () => {
                     value={metaTitle}
                     onChange={(e) => setMetaTitle(e.target.value)}
                     placeholder="SEO title"
-                    
                     className="bg-secondary border-border"
                   />
                   <p className="text-xs text-muted-foreground mt-1">{metaTitle.length} chars</p>
@@ -264,7 +285,6 @@ const AdminPage = () => {
                     value={metaDescription}
                     onChange={(e) => setMetaDescription(e.target.value)}
                     placeholder="SEO description"
-                    
                     rows={2}
                     className="bg-secondary border-border"
                   />
@@ -281,13 +301,11 @@ const AdminPage = () => {
                 </div>
               </div>
 
-              {/* Publish toggle */}
               <div className="flex items-center gap-3">
                 <Switch checked={published} onCheckedChange={setPublished} />
                 <Label className="text-foreground">Publish</Label>
               </div>
 
-              {/* Actions */}
               <div className="flex gap-3">
                 <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 glow" disabled={saveMutation.isPending}>
                   {saveMutation.isPending ? "Saving..." : editingPost ? "Update Post" : "Create Post"}
@@ -330,7 +348,10 @@ const AdminPage = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => { if (confirm("Delete this post?")) deleteMutation.mutate(post.id); }}
+                      onClick={() => {
+                        if (confirm("Delete this post?"))
+                          deleteMutation.mutate({ id: post.id, cover_image: post.cover_image ?? "" });
+                      }}
                       className="text-muted-foreground hover:text-destructive"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
