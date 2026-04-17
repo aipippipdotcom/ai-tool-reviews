@@ -43,7 +43,7 @@ const deleteImageFromImageKit = async (imageUrl: string) => {
 
     // List files theo path
     const searchRes = await fetch(
-      `https://api.imagekit.io/v1/files?path=${encodeURIComponent(filePath)}&type=file`,
+      `https://api.imagekit.io/v1/files?name=${encodeURIComponent(filePath.split("/").pop()!)}&type=file`,
       { headers: { Authorization: authHeader } }
     );
     const files = await searchRes.json();
