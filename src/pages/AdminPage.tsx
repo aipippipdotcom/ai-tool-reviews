@@ -29,31 +29,63 @@ const generateSlug = (title: string) =>
     .replace(/-+/g, "-")
     .trim();
 
+// Xóa ảnh trên ImageKit bằng cách list files theo path rồi delete theo fileId
 const deleteImageFromImageKit = async (imageUrl: string) => {
   if (!imageUrl || !imageUrl.includes("ik.imagekit.io")) return;
   try {
-    const filePath = imageUrl.split("/aipippipdotnet")[1];
+    const privateKey = import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY;
+    const authHeader = "Basic " + btoa(privateKey + ":");
+
+    // Extract path sau /aipippipdotnet, VD: /post-images/covers/xxx.webp
+    const match = imageUrl.match(/ik\.imagekit\.io\/aipippipdotnet(\/.*)/);
+    if (!match) return;
+    const filePath = match[1];
+
+    // List files theo path
     const searchRes = await fetch(
-      `https://api.imagekit.io/v1/files?path=${encodeURIComponent(filePath)}`,
-      {
-        headers: {
-          Authorization: "Basic " + btoa(import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY + ":"),
-        },
-      }
+      `https://api.imagekit.io/v1/files?path=${encodeURIComponent(filePath)}&type=file`,
+      { headers: { Authorization: authHeader } }
     );
     const files = await searchRes.json();
-    if (!files?.length) return;
+    if (!Array.isArray(files) || !files.length) {
+      console.warn("ImageKit: file not found at path", filePath);
+      return;
+    }
+
     const fileId = files[0].fileId;
-    await fetch(`https://api.imagekit.io/v1/files/${fileId}`, {
+    const delRes = await fetch(`https://api.imagekit.io/v1/files/${fileId}`, {
       method: "DELETE",
-      headers: {
-        Authorization: "Basic " + btoa(import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY + ":"),
-      },
+      headers: { Authorization: authHeader },
     });
+
+    if (delRes.ok) {
+      console.log("ImageKit: deleted", filePath);
+    } else {
+      console.error("ImageKit delete failed:", await delRes.text());
+    }
   } catch (err) {
     console.error("Failed to delete image from ImageKit:", err);
   }
 };
+
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  cover_image: string | null;
+  category_id: string;
+  author_id: string;
+  published: boolean;
+  created_at: string;
+  updated_at: string;
+  meta_title: string | null;
+  meta_description: string | null;
+  meta_keywords: string | null;
+  view_count?: number;
+  categories?: { name: string } | null;
+}
 
 const AdminPage = () => {
   const { user, isAdmin, loading } = useAuth();
@@ -87,7 +119,7 @@ const AdminPage = () => {
         .from("posts")
         .select("*, categories(name), view_count")
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []) as Post[];
     },
   });
 
@@ -138,16 +170,21 @@ const AdminPage = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (post: { id: string; cover_image?: string }) => {
+    mutationFn: async (post: { id: string; cover_image?: string | null }) => {
+      // Xóa ảnh trên ImageKit trước
       if (post.cover_image) {
         await deleteImageFromImageKit(post.cover_image);
       }
+      // Xóa post trong DB
       const { error } = await supabase.from("posts").delete().eq("id", post.id);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Post deleted!");
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
+    },
+    onError: (err: Error) => {
+      toast.error("Error: " + err.message);
     },
   });
 
@@ -165,7 +202,7 @@ const AdminPage = () => {
     setMetaKeywords("");
   };
 
-  const editPost = (post: any) => {
+  const editPost = (post: Post) => {
     setEditingPost(post.id);
     setActiveTab("editor");
     setTitle(post.title);
@@ -331,7 +368,7 @@ const AdminPage = () => {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {(post.categories as any)?.name} · {format(new Date(post.created_at), "MMM d, yyyy")} · 👁 {post.view_count ?? 0} views
+                      {post.categories?.name} · {format(new Date(post.created_at), "MMM d, yyyy")} · 👁 {post.view_count ?? 0} views
                     </p>
                   </div>
                   <div className="flex items-center gap-1 ml-4">
@@ -350,7 +387,7 @@ const AdminPage = () => {
                       size="sm"
                       onClick={() => {
                         if (confirm("Delete this post?"))
-                          deleteMutation.mutate({ id: post.id, cover_image: post.cover_image ?? "" });
+                          deleteMutation.mutate({ id: post.id, cover_image: post.cover_image });
                       }}
                       className="text-muted-foreground hover:text-destructive"
                     >
