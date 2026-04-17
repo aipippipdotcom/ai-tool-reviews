@@ -119,7 +119,7 @@ const AdminPage = () => {
         .from("posts")
         .select("*, categories(name), view_count")
         .order("created_at", { ascending: false });
-      return (data ?? []) as Post[];
+      return (data ?? []) as unknown as Post[];
     },
   });
 
