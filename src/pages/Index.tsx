@@ -14,7 +14,7 @@ const Index = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("categories")
-        .select("id, title, slug, excerpt, cover_image, category_id, created_at, published")
+        .select("id, name, slug, icon, description, sort_order")
         .order("sort_order");
       return (data ?? []) as any[];
     },
