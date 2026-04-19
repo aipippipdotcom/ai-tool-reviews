@@ -128,7 +128,7 @@ const AdminPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("email_subscribers")
-        .select("id, title, slug, excerpt, content, cover_image, category_id, author_id, published, created_at, updated_at, meta_title, meta_description, meta_keywords, view_count")
+        .select("id, email, subscribed_at, is_active")
         .order("subscribed_at", { ascending: false });
       return (data ?? []) as any[];
     },
