@@ -107,8 +107,8 @@ const AdminPage = () => {
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      const { data } = await supabase.from("categories").select("*").order("sort_order");
-      return data ?? [];
+      const { data } = await supabase.from("categories").select("id, name, slug, icon, sort_order").order("sort_order");
+      return (data ?? []) as any[];
     },
   });
 
@@ -128,9 +128,9 @@ const AdminPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("email_subscribers")
-        .select("*")
+        .select("id, title, slug, excerpt, content, cover_image, category_id, author_id, published, created_at, updated_at, meta_title, meta_description, meta_keywords, view_count")
         .order("subscribed_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []) as any[];
     },
   });
 

@@ -16,7 +16,7 @@ const Index = () => {
         .from("categories")
         .select("id, title, slug, excerpt, cover_image, category_id, created_at, published")
         .order("sort_order");
-      return data ?? [];
+      return (data ?? []) as any[];
     },
   });
 
@@ -28,7 +28,7 @@ const Index = () => {
         .select("id, title, slug, excerpt, cover_image, category_id, created_at, published")
         .eq("published", true)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []) as any[];
     },
   });
 

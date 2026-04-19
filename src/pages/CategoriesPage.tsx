@@ -13,9 +13,9 @@ const CategoriesPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("categories")
-        .select("*")
+        .select("id, name, slug, icon, description, sort_order")
         .order("sort_order");
-      return data ?? [];
+      return (data ?? []) as any[];
     },
   });
 

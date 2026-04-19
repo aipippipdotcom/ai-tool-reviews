@@ -15,7 +15,7 @@ const CategoryPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("categories")
-        .select("*")
+        .select("id, name, slug, icon, description")
         .eq("slug", slug!)
         .single();
       return data;
@@ -28,11 +28,11 @@ const CategoryPage = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from("posts")
-        .select("*")
+        .select("id, title, slug, excerpt, cover_image, category_id, created_at, published")
         .eq("category_id", category!.id)
         .eq("published", true)
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []) as any[];
     },
     enabled: !!category?.id,
   });

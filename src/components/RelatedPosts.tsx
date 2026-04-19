@@ -15,13 +15,13 @@ const RelatedPosts = ({ currentPostId, categoryId, categoryName, categorySlug }:
     queryFn: async () => {
       const { data } = await supabase
         .from("posts")
-        .select("*")
+        .select("id, title, slug, excerpt, cover_image, category_id, created_at")
         .eq("published", true)
         .eq("category_id", categoryId)
         .neq("id", currentPostId)
         .order("created_at", { ascending: false })
         .limit(5);
-      return data ?? [];
+      return (data ?? []) as any[];
     },
   });
 
