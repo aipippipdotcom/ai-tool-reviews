@@ -5,7 +5,6 @@ import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Bold,
@@ -52,7 +51,7 @@ const ToolbarButton = ({
   <button
     type="button"
     onMouseDown={(e) => {
-      e.preventDefault(); // Prevent editor blur
+      e.preventDefault();
       onClick();
     }}
     title={title}
@@ -74,6 +73,55 @@ const sanitizeFileName = (name: string) =>
     .replace(/Đ/g, "D")
     .replace(/[^a-zA-Z0-9._-]/g, "-")
     .replace(/-+/g, "-");
+
+// Compress ảnh trước khi upload
+const compressImage = (file: File | Blob, maxWidth = 1280, quality = 0.8): Promise<Blob> => {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement("canvas");
+      let { width, height } = img;
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => resolve(blob!), "image/webp", quality);
+    };
+    img.src = url;
+  });
+};
+
+// Upload ảnh lên ImageKit
+const uploadToImageKit = async (blob: Blob, fileName: string): Promise<string> => {
+  const privateKey = import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY;
+  const fd = new FormData();
+  fd.append("file", blob, fileName);
+  fd.append("fileName", fileName);
+  fd.append("folder", "/post-images/content");
+  fd.append("useUniqueFileName", "false");
+
+  const res = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
+    method: "POST",
+    headers: {
+      Authorization: "Basic " + btoa(privateKey + ":"),
+    },
+    body: fd,
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || "Upload failed");
+  }
+
+  const data = await res.json();
+  return data.url;
+};
 
 const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +151,69 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         class:
           "min-h-[400px] p-4 focus:outline-none prose prose-invert max-w-none [&_h1]:font-display [&_h1]:text-3xl [&_h2]:font-display [&_h2]:text-2xl [&_h3]:font-display [&_h3]:text-xl [&_h4]:font-display [&_h4]:text-lg [&_h5]:font-display [&_h5]:text-base [&_p]:text-muted-foreground [&_a]:text-primary [&_strong]:text-foreground [&_li]:text-muted-foreground [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_h5]:text-foreground [&_blockquote]:border-primary/30 [&_blockquote]:text-muted-foreground [&_code]:bg-secondary [&_code]:text-primary [&_code]:px-1 [&_code]:rounded [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6",
       },
+      // Xử lý paste ảnh
+      handlePaste(view, event) {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+
+        for (const item of Array.from(items)) {
+          if (item.type.startsWith("image/")) {
+            event.preventDefault();
+            const file = item.getAsFile();
+            if (!file) continue;
+
+            const toastId = toast.loading("Compressing & uploading image...");
+            compressImage(file)
+              .then((compressed) => {
+                const fileName = `${Date.now()}-pasted.webp`;
+                return uploadToImageKit(compressed, fileName);
+              })
+              .then((url) => {
+                view.dispatch(
+                  view.state.tr.replaceSelectionWith(
+                    view.state.schema.nodes.image.create({ src: url })
+                  )
+                );
+                toast.success("Image uploaded!", { id: toastId });
+              })
+              .catch((err) => {
+                toast.error("Upload failed: " + err.message, { id: toastId });
+              });
+
+            return true;
+          }
+        }
+        return false;
+      },
+
+      // Xử lý drop ảnh vào editor
+      handleDrop(view, event) {
+        const files = event.dataTransfer?.files;
+        if (!files?.length) return false;
+
+        const file = files[0];
+        if (!file.type.startsWith("image/")) return false;
+
+        event.preventDefault();
+        const toastId = toast.loading("Compressing & uploading image...");
+
+        compressImage(file)
+          .then((compressed) => {
+            const fileName = `${Date.now()}-${sanitizeFileName(file.name).replace(/\.[^.]+$/, "")}.webp`;
+            return uploadToImageKit(compressed, fileName);
+          })
+          .then((url) => {
+            const { tr, schema } = view.state;
+            const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos ?? tr.selection.from;
+            view.dispatch(tr.insert(pos, schema.nodes.image.create({ src: url })));
+            toast.success("Image uploaded!", { id: toastId });
+          })
+          .catch((err) => {
+            toast.error("Upload failed: " + err.message, { id: toastId });
+          });
+
+        return true;
+      },
     },
   });
 
@@ -120,6 +231,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     }
   }, [editor]);
 
+  // Upload ảnh từ toolbar button
   const handleImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -130,30 +242,18 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image must be under 5MB");
-        return;
+      const toastId = toast.loading("Compressing & uploading...");
+      try {
+        const compressed = await compressImage(file);
+        const fileName = `${Date.now()}-${sanitizeFileName(file.name).replace(/\.[^.]+$/, "")}.webp`;
+        const url = await uploadToImageKit(compressed, fileName);
+        editor.chain().focus().setImage({ src: url }).run();
+        toast.success("Image inserted!", { id: toastId });
+      } catch (err: any) {
+        toast.error("Upload failed: " + err.message, { id: toastId });
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
-
-      const safeFileName = sanitizeFileName(file.name);
-      const fileName = `content/${Date.now()}-${safeFileName}`;
-      const { data, error } = await supabase.storage
-        .from("post-images")
-        .upload(fileName, file);
-
-      if (error) {
-        toast.error("Upload failed: " + error.message);
-        return;
-      }
-
-      const { data: urlData } = supabase.storage
-        .from("post-images")
-        .getPublicUrl(data.path);
-
-      editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-      toast.success("Image inserted!");
-
-      if (fileInputRef.current) fileInputRef.current.value = "";
     },
     [editor]
   );
@@ -164,9 +264,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden relative">
-      {/* Toolbar - sticky within editor */}
       <div className="flex flex-wrap items-center gap-0.5 p-2 border-b border-border bg-secondary/50 sticky top-0 z-10">
-        {/* Text formatting */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Bold">
           <Bold size={s} />
         </ToolbarButton>
@@ -185,7 +283,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
         <div className="w-px h-5 bg-border mx-1" />
 
-        {/* Headings */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive("heading", { level: 1 })} title="Heading 1">
           <Heading1 size={s} />
         </ToolbarButton>
@@ -204,7 +301,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
         <div className="w-px h-5 bg-border mx-1" />
 
-        {/* Lists */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet List">
           <List size={s} />
         </ToolbarButton>
@@ -220,7 +316,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
         <div className="w-px h-5 bg-border mx-1" />
 
-        {/* Alignment */}
         <ToolbarButton onClick={() => editor.chain().focus().setTextAlign("left").run()} active={editor.isActive({ textAlign: "left" })} title="Align Left">
           <AlignLeft size={s} />
         </ToolbarButton>
@@ -233,7 +328,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
         <div className="w-px h-5 bg-border mx-1" />
 
-        {/* Link & Image */}
         <ToolbarButton onClick={addLink} active={editor.isActive("link")} title="Add Link">
           <LinkIcon size={s} />
         </ToolbarButton>
@@ -248,7 +342,6 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
         <div className="w-px h-5 bg-border mx-1" />
 
-        {/* Undo/Redo */}
         <ToolbarButton onClick={() => editor.chain().focus().undo().run()} title="Undo">
           <Undo size={s} />
         </ToolbarButton>
@@ -257,10 +350,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         </ToolbarButton>
       </div>
 
-      {/* Editor content */}
       <EditorContent editor={editor} />
 
-      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
