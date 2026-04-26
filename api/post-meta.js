@@ -2,8 +2,8 @@ const SUPABASE_URL = 'https://jcgcyrqsaodwaoryxcwy.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjZ2N5cnFzYW9kd2Fvcnl4Y3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NjIzMjEsImV4cCI6MjA4ODUzODMyMX0.eyL_WB5GR3g-sjj9PVkVN_r18j8p8QVSpjDJVMOUPJY'
 const BASE_URL = 'https://aipippip.net'
 const SITE_NAME = 'AIPipPip'
-const DEFAULT_TITLE = 'AIPipPip — Review Công Cụ AI Tốt Nhất'
-const DEFAULT_DESC = 'Khám phá và so sánh các công cụ AI tốt nhất. Review chi tiết, hướng dẫn sử dụng và cập nhật mới nhất.'
+const DEFAULT_TITLE = 'AIPipPip — Best AI Tools Reviews & Comparisons'
+const DEFAULT_DESC = 'Discover and compare the best AI tools. In-depth reviews, tutorials, and the latest updates on artificial intelligence tools.'
 const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`
 
 function escapeHtml(str) {
@@ -16,7 +16,7 @@ function escapeHtml(str) {
 
 function buildHtml({ title, description, image, url, type = 'website', schema = '' }) {
   return `<!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
@@ -35,18 +35,18 @@ function buildHtml({ title, description, image, url, type = 'website', schema = 
 <meta name="twitter:description" content="${escapeHtml(description)}"/>
 <meta name="twitter:image" content="${escapeHtml(image)}"/>
 ${schema ? `<script type="application/ld+json">${schema}</script>` : ''}
-<script>
-  // Redirect browser sang SPA, giữ nguyên path
-  if (typeof window !== 'undefined') {
-    window.location.replace(window.location.href);
-  }
-</script>
-<noscript>
-  <meta http-equiv="refresh" content="0; url=${escapeHtml(url)}"/>
-</noscript>
 </head>
 <body>
-<p>Đang chuyển hướng...</p>
+<h1>${escapeHtml(title)}</h1>
+<p>${escapeHtml(description)}</p>
+<a href="${escapeHtml(url)}">Read full article</a>
+<script>
+(function(){
+  var ua = navigator.userAgent;
+  var isBot = /bot|crawl|spider|google|bing|yahoo|baidu|yandex/i.test(ua);
+  if (!isBot) window.location.replace("${escapeHtml(url)}");
+})();
+</script>
 </body>
 </html>`
 }
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400')
     return res.status(200).send(buildHtml({
       title: `${name} — ${SITE_NAME}`,
-      description: `Tất cả bài viết về ${name}. Review và hướng dẫn sử dụng công cụ AI.`,
+      description: `Browse all ${name} articles. In-depth AI tool reviews, tutorials and comparisons.`,
       image: DEFAULT_IMAGE,
       url: `${BASE_URL}/category/${slug}`,
       type: 'website'
@@ -121,15 +121,13 @@ export default async function handler(req, res) {
   if (urlPath.startsWith('/about')) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
     return res.status(200).send(buildHtml({
-      title: `Về Chúng Tôi — ${SITE_NAME}`,
-      description: 'Tìm hiểu về AIPipPip — trang review công cụ AI hàng đầu Việt Nam.',
+      title: `About Us — ${SITE_NAME}`,
+      description: 'Learn about AIPipPip — your go-to source for honest AI tool reviews and comparisons.',
       image: DEFAULT_IMAGE,
       url: `${BASE_URL}/about`,
       type: 'website'
     }))
   }
 
-  // --- Trang chủ + tất cả còn lại → trả index.html gốc ---
-  // Không xử lý ở đây, để vercel.json serve file tĩnh
   return res.status(404).send('Not handled')
 }
