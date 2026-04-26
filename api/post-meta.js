@@ -6,6 +6,9 @@ const DEFAULT_TITLE = 'AIPipPip — Best AI Tools Reviews & Comparisons'
 const DEFAULT_DESC = 'Discover and compare the best AI tools. In-depth reviews, tutorials, and the latest updates on artificial intelligence tools.'
 const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`
 
+// User agents của các bot SEO phổ biến
+const BOT_REGEX = /bot|crawl|spider|google|bing|yahoo|baidu|yandex|facebot|twitterbot|slurp|duckduck|applebot|semrush|ahrefs|moz|rogerbot|linkedinbot|whatsapp|telegram/i
+
 function escapeHtml(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')
@@ -14,7 +17,8 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
 }
 
-function buildHtml({ title, description, image, url, type = 'website', schema = '' }) {
+function buildBotHtml({ title, description, image, url, type = 'website', schema = '' }) {
+  // HTML thuần cho bot — không redirect, không JS
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,14 +43,6 @@ ${schema ? `<script type="application/ld+json">${schema}</script>` : ''}
 <body>
 <h1>${escapeHtml(title)}</h1>
 <p>${escapeHtml(description)}</p>
-<a href="${escapeHtml(url)}">Read full article</a>
-<script>
-(function(){
-  var ua = navigator.userAgent;
-  var isBot = /bot|crawl|spider|google|bing|yahoo|baidu|yandex/i.test(ua);
-  if (!isBot) window.location.replace("${escapeHtml(url)}");
-})();
-</script>
 </body>
 </html>`
 }
@@ -70,6 +66,18 @@ async function getCategory(slug) {
 }
 
 export default async function handler(req, res) {
+  const userAgent = req.headers['user-agent'] || ''
+  const isBot = BOT_REGEX.test(userAgent)
+
+  // Browser thật → redirect thẳng về index.html, React SPA tự xử lý
+  if (!isBot) {
+    res.setHeader('Location', req.url)
+    res.setHeader('Cache-Control', 'no-store')
+    // Serve index.html trực tiếp bằng cách pass qua
+    // Vercel sẽ fallback về index.html vì không match file tĩnh
+    return res.status(302).redirect('/index.html')
+  }
+
   const urlPath = req.url.split('?')[0]
 
   // --- /post/:slug ---
@@ -96,7 +104,7 @@ export default async function handler(req, res) {
       })
       res.setHeader('Content-Type', 'text/html; charset=utf-8')
       res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400')
-      return res.status(200).send(buildHtml({ title, description, image, url, type: 'article', schema }))
+      return res.status(200).send(buildBotHtml({ title, description, image, url, type: 'article', schema }))
     }
   }
 
@@ -108,7 +116,7 @@ export default async function handler(req, res) {
     const name = cat?.name || slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400')
-    return res.status(200).send(buildHtml({
+    return res.status(200).send(buildBotHtml({
       title: `${name} — ${SITE_NAME}`,
       description: `Browse all ${name} articles. In-depth AI tool reviews, tutorials and comparisons.`,
       image: DEFAULT_IMAGE,
@@ -120,7 +128,7 @@ export default async function handler(req, res) {
   // --- /about ---
   if (urlPath.startsWith('/about')) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
-    return res.status(200).send(buildHtml({
+    return res.status(200).send(buildBotHtml({
       title: `About Us — ${SITE_NAME}`,
       description: 'Learn about AIPipPip — your go-to source for honest AI tool reviews and comparisons.',
       image: DEFAULT_IMAGE,
