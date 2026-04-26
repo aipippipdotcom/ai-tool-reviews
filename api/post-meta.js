@@ -1,3 +1,6 @@
+import fs from 'fs'
+import path from 'path'
+
 const SUPABASE_URL = 'https://jcgcyrqsaodwaoryxcwy.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjZ2N5cnFzYW9kd2Fvcnl4Y3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NjIzMjEsImV4cCI6MjA4ODUzODMyMX0.eyL_WB5GR3g-sjj9PVkVN_r18j8p8QVSpjDJVMOUPJY'
 const BASE_URL = 'https://aipippip.net'
@@ -5,8 +8,6 @@ const SITE_NAME = 'AIPipPip'
 const DEFAULT_TITLE = 'AIPipPip — Best AI Tools Reviews & Comparisons'
 const DEFAULT_DESC = 'Discover and compare the best AI tools. In-depth reviews, tutorials, and the latest updates on artificial intelligence tools.'
 const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`
-
-// User agents của các bot SEO phổ biến
 const BOT_REGEX = /bot|crawl|spider|google|bing|yahoo|baidu|yandex|facebot|twitterbot|slurp|duckduck|applebot|semrush|ahrefs|moz|rogerbot|linkedinbot|whatsapp|telegram/i
 
 function escapeHtml(str) {
@@ -18,7 +19,6 @@ function escapeHtml(str) {
 }
 
 function buildBotHtml({ title, description, image, url, type = 'website', schema = '' }) {
-  // HTML thuần cho bot — không redirect, không JS
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,6 +47,14 @@ ${schema ? `<script type="application/ld+json">${schema}</script>` : ''}
 </html>`
 }
 
+function getSpaHtml() {
+  try {
+    return fs.readFileSync(path.join(process.cwd(), 'dist', 'index.html'), 'utf-8')
+  } catch {
+    return null
+  }
+}
+
 async function getPost(slug) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/posts?slug=eq.${encodeURIComponent(slug)}&published=eq.true&select=title,meta_title,meta_description,excerpt,cover_image,slug,created_at,updated_at&limit=1`,
@@ -68,19 +76,24 @@ async function getCategory(slug) {
 export default async function handler(req, res) {
   const userAgent = req.headers['user-agent'] || ''
   const isBot = BOT_REGEX.test(userAgent)
-
-  // Browser thật → redirect thẳng về index.html, React SPA tự xử lý
-  if (!isBot) {
-    res.setHeader('Location', req.url)
-    res.setHeader('Cache-Control', 'no-store')
-    // Serve index.html trực tiếp bằng cách pass qua
-    // Vercel sẽ fallback về index.html vì không match file tĩnh
-    return res.status(302).redirect('/index.html')
-  }
-
   const urlPath = req.url.split('?')[0]
 
-  // --- /post/:slug ---
+  // Browser thật → serve index.html gốc để React SPA chạy bình thường
+  if (!isBot) {
+    const spaHtml = getSpaHtml()
+    if (spaHtml) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8')
+      res.setHeader('Cache-Control', 'no-store')
+      return res.status(200).send(spaHtml)
+    }
+    // Fallback nếu không đọc được dist/index.html
+    res.setHeader('Location', '/')
+    return res.status(302).end()
+  }
+
+  // --- BOT: inject meta theo từng route ---
+
+  // /post/:slug
   const postMatch = urlPath.match(/^\/post\/([^/]+)\/?$/)
   if (postMatch) {
     const slug = postMatch[1]
@@ -108,7 +121,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // --- /category/:slug ---
+  // /category/:slug
   const catMatch = urlPath.match(/^\/category\/([^/]+)\/?$/)
   if (catMatch) {
     const slug = catMatch[1]
@@ -125,7 +138,7 @@ export default async function handler(req, res) {
     }))
   }
 
-  // --- /about ---
+  // /about
   if (urlPath.startsWith('/about')) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
     return res.status(200).send(buildBotHtml({
