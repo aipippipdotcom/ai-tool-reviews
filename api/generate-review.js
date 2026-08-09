@@ -9,7 +9,13 @@ const SUPABASE_ANON =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjZ2N5cnFzYW9kd2Fvcnl4Y3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NjIzMjEsImV4cCI6MjA4ODUzODMyMX0.eyL_WB5GR3g-sjj9PVkVN_r18j8p8QVSpjDJVMOUPJY'
 
 const DEEPSEEK_URL = 'https://api.deepseek.com/chat/completions'
-const MODEL = 'deepseek-chat'
+
+/**
+ * DeepSeek retired `deepseek-chat` and `deepseek-reasoner` on 2026-07-24 —
+ * those names now fail outright rather than falling back. Overridable by env
+ * so the next rename does not need a code change.
+ */
+const MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash'
 
 const json = (body, status) =>
   new Response(JSON.stringify(body), {
@@ -148,6 +154,10 @@ export default async function handler(request) {
     body: JSON.stringify({
       model: MODEL,
       stream: true,
+      // Thinking mode defaults to enabled on v4. Long-form writing gains
+      // nothing from it and pays for the reasoning tokens plus the latency,
+      // so it is switched off deliberately rather than left to the default.
+      thinking: { type: 'disabled' },
       temperature: 1.0,
       max_tokens: 8192,
       messages: buildMessages({ productName, affiliateUrl, notes, categoryName, research }),
