@@ -1,15 +1,36 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Helmet } from "react-helmet-async";
+import Seo, { BASE_URL, SITE_NAME } from "@/components/Seo";
 import { Mail, Linkedin, Facebook } from "lucide-react";
 
 const AboutPage = () => {
   return (
     <>
-      <Helmet>
-        <title>About AIPipPip – AI Tools Review Platform</title>
-        <meta name="description" content="AIPipPip.net is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools." />
-      </Helmet>
+      <Seo
+        title={`About Us — ${SITE_NAME}`}
+        description="AIPipPip.net is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools."
+        canonical={`${BASE_URL}/about`}
+        schema={[
+          {
+            "@type": "AboutPage",
+            url: `${BASE_URL}/about`,
+            description:
+              "AIPipPip.net is a global review platform dedicated to discovering, analyzing, and curating the most practical and high-value AI tools.",
+          },
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: "About",
+                item: `${BASE_URL}/about`,
+              },
+            ],
+          },
+        ]}
+      />
       <Header />
       <main className="container mx-auto px-4 py-16 max-w-3xl">
         <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-8">

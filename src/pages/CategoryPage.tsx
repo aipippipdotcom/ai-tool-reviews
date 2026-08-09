@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PostCard from "@/components/PostCard";
-import { Helmet } from "react-helmet-async";
+import Seo, { BASE_URL, SITE_NAME } from "@/components/Seo";
 import CategoryIcon from "@/components/CategoryIcon";
 
 const CategoryPage = () => {
@@ -37,16 +37,38 @@ const CategoryPage = () => {
     enabled: !!category?.id,
   });
 
+  const url = `${BASE_URL}/category/${slug}`;
+  const description =
+    category?.description ||
+    `Browse every ${category?.name ?? ""} review on ${SITE_NAME} — hands-on testing, pricing breakdowns and honest verdicts.`;
+
   return (
     <>
-      <Helmet>
-        <link rel="canonical" href={`https://aipippip.net/category/${slug}`} />
-        <title>{category?.name ?? "Category"} — AIPipPip</title>
-        <meta
-          name="description"
-          content={`Browse all ${category?.name ?? ""} reviews on AIPipPip`}
-        />
-      </Helmet>
+      <Seo
+        title={`${category?.name ?? "Category"} — Reviews & Comparisons | ${SITE_NAME}`}
+        description={description}
+        canonical={url}
+        schema={[
+          {
+            "@type": "CollectionPage",
+            url,
+            name: category?.name ?? "Category",
+            description,
+          },
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+              {
+                "@type": "ListItem",
+                position: 2,
+                name: category?.name ?? "Category",
+                item: url,
+              },
+            ],
+          },
+        ]}
+      />
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-10">
