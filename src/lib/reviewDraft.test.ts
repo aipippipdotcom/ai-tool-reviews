@@ -18,6 +18,7 @@ excerpt: I tested every prompt. Here is what held up.
 <p>It was 9pm and I had no story left in me.</p>
 [verdict rating="4.3" title="StoryCraft Kids" url="https://merchant.com/x" price="$17"]
 <h3>Key Features</h3>
+[cta url="https://merchant.com/x" label="Try It Tonight"]
 [proscons pros="Cheap|Fast" cons="Niche"]
 [cta url="https://merchant.com/x" label="Get Instant Access"]`;
 
@@ -138,6 +139,20 @@ describe("reviewDraftIssues", () => {
   it("flags a short draft", () => {
     const draft = parseReviewDraft(FULL);
     expect(reviewDraftIssues(draft, 2000).join(" ")).toContain("under the 2000");
+  });
+
+  // One button at the very end asks a reader who has scrolled 2000 words to
+  // scroll back. A review needs a second chance to convert.
+  it("flags a lone call to action", () => {
+    const draft = parseReviewDraft(
+      "<<<META>>>\ntitle: T\nmeta_description: d\nexcerpt: e\n<<<CONTENT>>>\n" +
+        '<p>Body</p>[verdict rating="4" title="X"][proscons pros="A" cons="B"]' +
+        '[cta url="https://m.com"]'
+    );
+
+    expect(reviewDraftIssues(draft, 1)).toContain(
+      "Only one [cta]; a review should offer two or three."
+    );
   });
 
   it("flags missing conversion blocks", () => {

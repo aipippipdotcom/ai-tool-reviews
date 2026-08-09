@@ -163,7 +163,9 @@ export function reviewDraftIssues(draft: ReviewDraft, minWords: number): string[
   if (!draft.metaDescription) issues.push("No meta description.");
   if (!draft.excerpt) issues.push("No excerpt.");
   if (!/\[verdict/i.test(draft.content)) issues.push("No [verdict] block.");
-  if (!/\[cta/i.test(draft.content)) issues.push("No closing [cta] block.");
+  const ctas = (draft.content.match(/\[cta\b/gi) || []).length;
+  if (!ctas) issues.push("No [cta] block.");
+  else if (ctas < 2) issues.push("Only one [cta]; a review should offer two or three.");
   if (!/\[proscons/i.test(draft.content)) issues.push("No [proscons] block.");
   if (/<h[12]\b/i.test(draft.content)) issues.push("Body contains an h1 or h2; the page supplies those.");
   if (/<img\b/i.test(draft.content)) issues.push("Body contains an image; add those yourself.");

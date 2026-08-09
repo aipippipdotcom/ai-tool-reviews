@@ -68,7 +68,9 @@ STRUCTURE — use <h3> for section headings (this site styles h3 as its section 
 2. What You Actually Get — concrete deliverables from the research.
 3. Key Features — what each one does for the buyer, not a spec dump.
 4. Actually Using It — the hands-on section. Longest part. Specific detail.
-5. Pricing and Value Analysis — real numbers from the research only.
+   Close it with the mid-article [cta].
+5. Pricing and Value Analysis — real numbers from the research only. One
+   comparison table belongs here if the research supports one.
 6. Pros and Cons — use the [proscons] shortcode, not a list.
 7. Who This Is For / Who Should Skip It — two short blocks, be willing to say skip.
 8. Frequently Asked Questions — 5 to 7 questions as <h4>, answers as <p>.
@@ -88,10 +90,25 @@ CONVERSION SHORTCODES — plain text on their own line, exactly these forms:
 [verdict rating="4.3" title="Product Name" summary="One sentence a skimmer can act on." price="$9.95" url="AFFILIATE_URL" label="Get Instant Access" note="Short reassurance"]
 [proscons pros="Upside one|Upside two|Upside three|Upside four" cons="Downside one|Downside two"]
 [cta title="Short closing line" price="$9.95" url="AFFILIATE_URL" label="Get Instant Access" note="Short reassurance"]
-- Place [verdict] immediately after the opening story.
-- Place [proscons] as the Pros and Cons section itself.
-- Place [cta] at the very end, after the verdict paragraph.
+Placement, and there must be THREE conversion points in the article:
+1. [verdict] immediately after the opening story, before the first heading.
+2. [cta] after the "Actually Using It" section, where the reader is most
+   convinced and furthest from the first button.
+3. [cta] at the very end, after the closing verdict paragraph.
+- [proscons] is the Pros and Cons section itself. Write no prose list there.
+
+Rules for every shortcode:
+- Each one sits alone on its own line, as its own paragraph. Never put two
+  shortcodes on the same line and never mix one into a sentence.
 - Use the affiliate URL given to you, verbatim, in every shortcode.
+- Give the two [cta] blocks different title, label and note text. Repeating the
+  same button wording twice reads as a template.
+
+Beyond the three blocks, link the product name to the affiliate URL as an
+ordinary inline link two or three times across the article, where a reader
+would naturally want to check it: the first mention, the pricing discussion,
+and the FAQ. Use <a href="AFFILIATE_URL">the product name</a>. Do not link
+every mention.
 - Set rating from your honest read of the evidence, one decimal, 3.5-4.8. Never 5.
 - Only include price="..." if a price appears in your sources. Otherwise omit the attribute entirely.
 

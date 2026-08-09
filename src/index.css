@@ -140,6 +140,11 @@
     margin-top: 1.5em;
   }
 
+  /* A full blank line between paragraphs: one line-height exactly. */
+  .article p + p {
+    margin-top: 1.75em;
+  }
+
   .article p {
     margin: 0;
     text-wrap: pretty;
@@ -368,36 +373,100 @@
     background: hsl(192 91% 56% / 0.12);
   }
 
-  /* Editor only: added by the shortcodeHighlight decoration so a conversion
-     block reads as configured markup rather than as broken output. The text
-     stays plain and editable underneath. */
-  .article .shortcode-block {
+  /* --- Editor: conversion block node view -------------------------------
+   * Shows the block as the published page will render it, with the shortcode
+   * source behind an Edit toggle. Storage is unaffected.
+   */
+  .sc-node {
     position: relative;
     margin-block: 2rem;
-    padding: 2.5rem 1.125rem 1.125rem;
-    border: 1px dashed hsl(192 91% 56% / 0.45);
-    border-radius: 0.875rem;
-    background: hsl(192 91% 56% / 0.05);
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.8125rem;
-    line-height: 1.7;
-    color: hsl(210 25% 78%);
-    word-break: break-word;
+    border: 1px solid hsl(222 25% 20%);
+    border-radius: 1rem;
+    background: hsl(222 40% 8%);
+    overflow: hidden;
   }
 
-  .article .shortcode-block::before {
-    content: attr(data-shortcode-label) " · shown as a styled box on the live page";
-    position: absolute;
-    top: 0.75rem;
-    left: 1.125rem;
-    right: 1.125rem;
+  .sc-node[data-editing="true"] {
+    border-color: hsl(192 91% 56% / 0.5);
+  }
+
+  .sc-node__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem 0.5rem 1rem;
+    border-bottom: 1px solid hsl(222 25% 18%);
+    background: hsl(222 30% 12%);
+  }
+
+  .sc-node__label {
     font-family: var(--font-display);
     font-size: 0.6875rem;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: hsl(192 91% 62%);
+  }
+
+  .sc-node__edit,
+  .sc-node__actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid hsl(222 25% 22%);
+    border-radius: 0.5rem;
+    background: hsl(222 30% 15%);
+    font-size: 0.75rem;
+    color: hsl(210 25% 78%);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .sc-node__edit:hover,
+  .sc-node__actions button:hover {
+    color: hsl(192 91% 62%);
+    border-color: hsl(192 91% 56% / 0.45);
+  }
+
+  .sc-node__actions {
+    display: inline-flex;
+    gap: 0.375rem;
+  }
+
+  .sc-node__preview {
+    padding: 0 1.125rem;
+    /* The preview contains real affiliate buttons. Clicks here would open the
+       merchant and log a false affiliate_click, so it is display only. */
     pointer-events: none;
+    user-select: none;
+  }
+
+  .sc-node__preview .aff-box,
+  .sc-node__preview .aff-proscons {
+    margin-block: 1.125rem;
+  }
+
+  .sc-node__input {
+    display: block;
+    width: 100%;
+    padding: 1rem 1.125rem;
+    border: 0;
+    background: hsl(222 40% 6%);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: hsl(210 25% 82%);
+    resize: vertical;
+    outline: none;
+  }
+
+  .sc-node__empty {
+    margin: 0;
+    padding: 1.25rem 0;
+    font-size: 0.875rem;
+    color: hsl(38 92% 60%);
   }
 }
 
