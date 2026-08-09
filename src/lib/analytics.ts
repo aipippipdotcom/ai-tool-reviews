@@ -14,7 +14,13 @@ declare global {
     gtag?: (command: string, event: string, params?: Props) => void;
     dataLayer?: unknown[];
     /** Server-rendered data seeded by api/post-meta.js. */
-    __PRELOAD__?: { post?: Record<string, unknown> };
+    __PRELOAD__?: {
+      post?: Record<string, unknown>;
+      categories?: Record<string, unknown>[];
+      homePosts?: Record<string, Record<string, unknown>[]>;
+      category?: Record<string, unknown>;
+      categoryPosts?: Record<string, unknown>[];
+    };
   }
 }
 

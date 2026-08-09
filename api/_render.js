@@ -239,6 +239,76 @@ export function renderPostBody(post, category) {
   );
 }
 
+function postCard(post, categoryName) {
+  return (
+    `<a href="/post/${esc(post.slug)}" class="group block rounded-xl border border-border bg-card overflow-hidden">` +
+    `<div class="aspect-[16/10] bg-secondary overflow-hidden">` +
+    (post.cover_image
+      ? `<img src="${esc(post.cover_image)}" alt="${esc(post.title)}" loading="lazy" class="w-full h-full object-cover"/>`
+      : "") +
+    `</div><div class="p-5">` +
+    (categoryName
+      ? `<div class="flex items-center gap-2 mb-3"><span class="text-[11px] font-medium uppercase tracking-wider text-primary">${esc(categoryName)}</span></div>`
+      : "") +
+    `<h3 class="font-display font-semibold text-foreground line-clamp-2 mb-2 leading-snug">${esc(post.title)}</h3>` +
+    (post.excerpt
+      ? `<p class="text-sm text-muted-foreground line-clamp-2 leading-relaxed">${esc(post.excerpt)}</p>`
+      : "") +
+    `</div></a>`
+  );
+}
+
+const CARD_GRID = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5";
+
+/**
+ * Homepage body. Mirrors src/pages/Index.tsx closely enough that the React
+ * takeover is invisible, and gives crawlers the internal links that were
+ * previously only reachable by running the app.
+ */
+export function renderHomeBody(sections) {
+  const hero =
+    `<section class="relative overflow-hidden rounded-2xl border border-border bg-card mb-16">` +
+    `<div class="relative px-8 py-16 md:px-16 md:py-24">` +
+    `<h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] mb-5">` +
+    `Find the best <span class="text-gradient">AI tools</span> for your workflow</h1>` +
+    `<p class="text-muted-foreground text-lg md:text-xl leading-relaxed max-w-lg">` +
+    `In-depth reviews, side-by-side comparisons, and expert insights on the top digital products and AI tools.` +
+    `</p></div></section>`;
+
+  const body = sections
+    .filter((s) => s.posts.length)
+    .map(
+      (s) =>
+        `<section class="mb-16">` +
+        `<div class="flex items-center justify-between mb-8">` +
+        `<h2 class="font-display text-xl md:text-2xl font-bold text-foreground">${esc(s.name)}</h2>` +
+        `<a href="/category/${esc(s.slug)}" class="text-sm font-medium text-primary">View all</a>` +
+        `</div>` +
+        `<div class="${CARD_GRID}">${s.posts.map((p) => postCard(p, s.name)).join("")}</div>` +
+        `</section>`
+    )
+    .join("");
+
+  return shell(hero + body);
+}
+
+/** Category listing body. Mirrors src/pages/CategoryPage.tsx. */
+export function renderCategoryBody(category, description, posts) {
+  const head =
+    `<div class="mb-10">` +
+    `<h1 class="font-display text-3xl md:text-4xl font-bold text-foreground">${esc(category.name)}</h1>` +
+    `<p class="text-muted-foreground mt-2">${esc(description)}</p></div>`;
+
+  const grid = posts.length
+    ? `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">` +
+      posts.map((p) => postCard(p, category.name)).join("") +
+      `</div>`
+    : `<div class="text-center py-20 rounded-xl border border-border bg-card">` +
+      `<p class="text-muted-foreground">No posts in this category yet.</p></div>`;
+
+  return shell(head + grid);
+}
+
 export function renderNotFoundBody() {
   return shell(
     `<div class="text-center py-20"><h1 class="mb-4 text-4xl font-bold text-foreground">404</h1>` +

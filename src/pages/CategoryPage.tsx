@@ -12,11 +12,22 @@ import CategoryIcon from "@/components/CategoryIcon";
 /** Two full rows at the widest breakpoint, so the first screen is covered. */
 const PAGE_SIZE = 12;
 
+/**
+ * api/post-meta.js already fetched this to build the server HTML. Reusing it
+ * keeps React's first render identical to what was painted, rather than
+ * blanking the grid to refetch what is already on screen.
+ */
+const preloaded = (slug?: string) => {
+  const data = window.__PRELOAD__;
+  return (data?.category as { slug?: string } | undefined)?.slug === slug ? data : undefined;
+};
+
 const CategoryPage = () => {
   const { slug } = useParams<{ slug: string }>();
 
   const { data: category } = useQuery({
     queryKey: ["category", slug],
+    initialData: preloaded(slug)?.category as any,
     queryFn: async () => {
       const { data } = await supabase
         .from("categories")
@@ -34,6 +45,8 @@ const CategoryPage = () => {
 
   const { data: pages } = useQuery({
     queryKey: ["category-posts", category?.id, page],
+    // Only the first page was rendered server-side.
+    initialData: page === 0 ? (preloaded(slug)?.categoryPosts as any[] | undefined) : undefined,
     queryFn: async () => {
       const { data } = await supabase
         .from("posts")

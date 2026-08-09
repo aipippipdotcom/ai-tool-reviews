@@ -1,6 +1,19 @@
 import { indexHtml } from './index-html.js'
 import { tokenize } from './_shortcodes.js'
-import { esc, renderPostBody, renderNotFoundBody } from './_render.js'
+import {
+  esc,
+  renderPostBody,
+  renderHomeBody,
+  renderCategoryBody,
+  renderNotFoundBody,
+} from './_render.js'
+
+/** Must match POSTS_PER_CATEGORY in src/components/CategorySection.tsx. */
+const POSTS_PER_CATEGORY = 6
+/** Must match PAGE_SIZE in src/pages/CategoryPage.tsx. */
+const CATEGORY_PAGE_SIZE = 12
+
+const listSelect = 'id,title,slug,excerpt,cover_image,created_at'
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jcgcyrqsaodwaoryxcwy.supabase.co'
 const SUPABASE_KEY =
@@ -45,6 +58,17 @@ const getCategoryBySlug = (slug) =>
   sb(`categories?slug=eq.${encodeURIComponent(slug)}&select=id,name,slug,description&limit=1`).then(
     (d) => d?.[0] || null
   )
+
+const getCategories = () =>
+  sb('categories?select=id,name,slug,icon,description,sort_order&order=sort_order').then(
+    (d) => d || []
+  )
+
+const getCategoryPosts = (categoryId, limit) =>
+  sb(
+    `posts?published=eq.true&category_id=eq.${encodeURIComponent(categoryId)}` +
+      `&select=${listSelect}&order=created_at.desc&limit=${limit}`
+  ).then((d) => d || [])
 
 /** "$9.95" / "€19" / "29 USD" → { price, currency } */
 function parsePrice(raw) {
@@ -226,6 +250,7 @@ async function resolve(urlPath) {
     const description =
       cat.description ||
       `Browse every ${cat.name} review on ${SITE_NAME} — hands-on testing, pricing breakdowns and honest verdicts.`
+    const posts = await getCategoryPosts(cat.id, CATEGORY_PAGE_SIZE)
 
     return {
       meta: {
@@ -251,14 +276,26 @@ async function resolve(urlPath) {
           ],
         }),
       },
-      // Body injection is post-pages only for now: seeding the list queries
-      // needs the pagination refactor first, and injecting HTML the SPA then
-      // wipes would flash blank.
-      body: null,
+      body: renderCategoryBody(cat, description, posts),
+      // Keys must match the useQuery calls in src/pages/CategoryPage.tsx, or
+      // React refetches and flashes an empty grid over the rendered one.
+      preload: {
+        category: cat,
+        categoryPosts: posts,
+        categoryPageSize: CATEGORY_PAGE_SIZE,
+      },
     }
   }
 
   if (urlPath === '/' || urlPath === '') {
+    const categories = await getCategories()
+    const sections = await Promise.all(
+      categories.map(async (cat) => ({
+        ...cat,
+        posts: await getCategoryPosts(cat.id, POSTS_PER_CATEGORY),
+      }))
+    )
+
     return {
       meta: {
         title: DEFAULT_TITLE,
@@ -274,7 +311,14 @@ async function resolve(urlPath) {
           ],
         }),
       },
-      body: null,
+      body: renderHomeBody(sections),
+      // Keys must match src/pages/Index.tsx, or React discards this and
+      // repaints an empty page over the rendered one.
+      preload: {
+        categories,
+        homePosts: Object.fromEntries(sections.map((s) => [s.id, s.posts])),
+        postsPerCategory: POSTS_PER_CATEGORY,
+      },
     }
   }
 
