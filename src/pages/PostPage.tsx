@@ -10,6 +10,7 @@ import Seo, { BASE_URL, DEFAULT_IMAGE, SITE_NAME } from "@/components/Seo";
 import AffiliateDisclosure from "@/components/affiliate/AffiliateDisclosure";
 import StickyCta from "@/components/affiliate/StickyCta";
 import { extractVerdict, primaryOffer } from "@/lib/shortcodes";
+import { readingTime } from "@/lib/utils";
 import { format } from "date-fns";
 import CategoryIcon from "@/components/CategoryIcon";
 
@@ -198,8 +199,8 @@ const PostPage = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-10">
-          <article className="max-w-3xl mx-auto">
-            <nav className="mb-8 text-sm text-muted-foreground" aria-label="Breadcrumb">
+          <article className="max-w-[46rem] mx-auto">
+            <nav className="mb-7 text-sm text-muted-foreground" aria-label="Breadcrumb">
               <Link to="/" className="hover:text-primary transition-colors">
                 Home
               </Link>
@@ -215,8 +216,40 @@ const PostPage = () => {
                   <span className="text-border mx-1.5">/</span>
                 </>
               )}
-              <span className="text-foreground">{post.title}</span>
+              <span className="text-foreground line-clamp-1">{post.title}</span>
             </nav>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-5 text-[11px]">
+              {category && (
+                <span className="inline-flex items-center gap-1.5 font-medium uppercase tracking-wider text-primary">
+                  <CategoryIcon name={category.icon} className="h-3.5 w-3.5" />
+                  {category.name}
+                </span>
+              )}
+              <span className="text-border">·</span>
+              <time
+                dateTime={post.created_at}
+                className="uppercase tracking-wider text-muted-foreground"
+              >
+                {format(new Date(post.created_at), "MMM d, yyyy")}
+              </time>
+              <span className="text-border">·</span>
+              <span className="uppercase tracking-wider text-muted-foreground">
+                {readingTime(post.content)} min read
+              </span>
+            </div>
+
+            {/* Title before the hero image: it is the h1, and it belongs above
+                the fold rather than pushed down by a 16:9 crop. */}
+            <h1 className="font-display text-[2rem] md:text-[2.75rem] font-bold text-foreground leading-[1.12] tracking-[-0.025em] text-balance">
+              {post.title}
+            </h1>
+
+            {post.excerpt && (
+              <p className="mt-5 text-lg md:text-xl leading-relaxed text-muted-foreground text-pretty">
+                {post.excerpt}
+              </p>
+            )}
 
             {post.cover_image && (
               <img
@@ -225,31 +258,13 @@ const PostPage = () => {
                 width={1200}
                 height={675}
                 fetchPriority="high"
-                className="w-full rounded-xl mb-8 aspect-video object-cover border border-border"
+                className="w-full rounded-xl mt-9 aspect-video object-cover border border-border"
               />
             )}
 
-            <div className="flex items-center gap-3 mb-5">
-              {category && (
-                <span className="text-[11px] font-medium uppercase tracking-wider text-primary">
-                  <CategoryIcon
-                    name={category.icon}
-                    className="h-3.5 w-3.5 text-primary inline mr-1"
-                  />{" "}
-                  {category.name}
-                </span>
-              )}
-              <span className="text-border">·</span>
-              <span className="text-xs text-muted-foreground">
-                {format(new Date(post.created_at), "MMM d, yyyy")}
-              </span>
+            <div className="mt-9">
+              <AffiliateDisclosure />
             </div>
-
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-8 leading-tight">
-              {post.title}
-            </h1>
-
-            <AffiliateDisclosure />
 
             <PostContent content={post.content} postSlug={slug} />
 
