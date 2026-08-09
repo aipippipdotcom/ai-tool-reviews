@@ -19,6 +19,12 @@ interface CategorySectionProps {
   posts: Post[];
 }
 
+/**
+ * Single source of truth for the row size — the column counts below are chosen
+ * to divide it evenly, so no breakpoint leaves an orphan card on its own row.
+ */
+export const POSTS_PER_CATEGORY = 6;
+
 const CategorySection = ({ name, slug, icon, posts }: CategorySectionProps) => {
   if (posts.length === 0) return null;
 
@@ -37,8 +43,8 @@ const CategorySection = ({ name, slug, icon, posts }: CategorySectionProps) => {
           <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
-        {posts.slice(0, 5).map((post) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {posts.slice(0, POSTS_PER_CATEGORY).map((post) => (
           <PostCard
             key={post.id}
             title={post.title}

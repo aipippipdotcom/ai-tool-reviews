@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
-import CategorySection from "@/components/CategorySection";
+import CategorySection, { POSTS_PER_CATEGORY } from "@/components/CategorySection";
 import SearchBar from "@/components/SearchBar";
 import EmailSubscribe from "@/components/EmailSubscribe";
 import Seo, { BASE_URL, SITE_NAME } from "@/components/Seo";
@@ -33,7 +33,7 @@ const Index = () => {
   });
 
   const getPostsForCategory = (categoryId: string) =>
-    (posts ?? []).filter((p) => p.category_id === categoryId).slice(0, 5);
+    (posts ?? []).filter((p) => p.category_id === categoryId).slice(0, POSTS_PER_CATEGORY);
 
   return (
     <>
