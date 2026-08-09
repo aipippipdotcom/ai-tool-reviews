@@ -9,7 +9,8 @@ import Table from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
-import { tokenize } from "@/lib/shortcodes";
+import { tokenize, wrapShortcodeLines } from "@/lib/shortcodes";
+import ShortcodeNode from "@/components/editor/ShortcodeNode";
 
 // Must mirror the extension list in RichTextEditor.tsx. Anything the schema
 // cannot represent is silently flattened into text rather than rejected, so a
@@ -24,12 +25,58 @@ const extensions = [
   TableRow,
   TableHeader,
   TableCell,
+  ShortcodeNode,
 ];
+
+/**
+ * The shape the model actually emits: shortcodes as loose text between
+ * paragraphs, not inside one. An earlier fixture wrapped them in <p> by hand
+ * and so passed while the real content stayed raw text in the editor.
+ */
+const GENERATED = `<p>Here is what happened.</p>
+[verdict rating="4.1" title="TubeForge" price="$17.00" url="https://warriorplus.com/o2/a/x/0" label="Get TubeForge for $17"]
+<p>And then some more prose.</p>
+[proscons pros="One-time $17, no subscription|No AI redrawing" cons="No refunds, all sales final|50 render cap"]`;
 
 const TABLE_HTML =
   "<table><thead><tr><th>Option</th><th>Upfront Cost</th></tr></thead>" +
   "<tbody><tr><td>Fiverr</td><td>$25 to $75</td></tr>" +
   "<tr><td>TubeForge</td><td>$17 once</td></tr></tbody></table>";
+
+describe("conversion blocks in the editor", () => {
+  const nodeTypes = (html: string) =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ((generateJSON(html, extensions) as any).content ?? []).map((n: any) => n.type);
+
+  // The regression: bare shortcode lines stayed as raw bracket text on screen.
+  it("recognises bare shortcode lines as conversion blocks", () => {
+    expect(nodeTypes(wrapShortcodeLines(GENERATED))).toEqual([
+      "paragraph",
+      "shortcodeBlock",
+      "paragraph",
+      "shortcodeBlock",
+    ]);
+  });
+
+  it("does not recognise them without the wrapping step", () => {
+    expect(nodeTypes(GENERATED)).not.toContain("shortcodeBlock");
+  });
+
+  it("keeps the attributes intact through the wrap", () => {
+    const json = generateJSON(wrapShortcodeLines(GENERATED), extensions) as any;
+    const block = json.content.find((n: any) => n.type === "shortcodeBlock");
+
+    expect(tokenize(block.attrs.code)[0]).toMatchObject({
+      type: "verdict",
+      attrs: { rating: "4.1", title: "TubeForge", price: "$17.00" },
+    });
+  });
+
+  it("leaves a shortcode that shares a line with prose alone", () => {
+    const html = '<p>Here it is. [verdict rating="4"]</p>';
+    expect(nodeTypes(wrapShortcodeLines(html))).toEqual(["paragraph"]);
+  });
+});
 
 describe("editor schema", () => {
   it("keeps a generated comparison table as a real table", () => {

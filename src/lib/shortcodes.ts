@@ -53,6 +53,22 @@ export function splitList(value: string | undefined): string[] {
 }
 
 /**
+ * Puts a bare shortcode line inside a paragraph.
+ *
+ * The model emits shortcodes as loose text between paragraphs rather than
+ * inside one. ProseMirror wraps loose text in a paragraph itself, but only
+ * after parsing, so a parse rule keyed on the <p> tag never sees the element
+ * and the block stays raw text in the editor. Wrapping first gives the rule
+ * something to match.
+ */
+export function wrapShortcodeLines(html: string): string {
+  return String(html || "").replace(
+    /^([ \t]*)((?:\[(?:cta|verdict|proscons)\b[^\]]*\][ \t]*)+)$/gim,
+    "<p>$2</p>"
+  );
+}
+
+/**
  * The editor stores a shortcode as ordinary text, so Tiptap wraps it in a
  * paragraph. Splitting on the shortcode would then strand the opening <p> in
  * one fragment and its </p> in the next, leaving an empty paragraph and

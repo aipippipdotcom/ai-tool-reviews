@@ -10,6 +10,7 @@ import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import ShortcodeNode from "@/components/editor/ShortcodeNode";
+import { wrapShortcodeLines } from "@/lib/shortcodes";
 import { toast } from "sonner";
 import {
   Bold,
@@ -176,7 +177,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       // parsing from and serialising back to plain shortcode paragraphs.
       ShortcodeNode,
     ],
-    content,
+    content: wrapShortcodeLines(content),
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -255,7 +256,9 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content);
+      // Bare shortcode lines need a paragraph around them before the schema
+      // can recognise them as conversion blocks.
+      editor.commands.setContent(wrapShortcodeLines(content));
     }
   }, [content, editor]);
 
