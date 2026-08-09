@@ -7,9 +7,59 @@
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@AIPipPip" />
-    <meta name="twitter:image" content="https://aipippip.net/og-image.png" />
+
+    <!-- Article images are served from ImageKit; warm the connection early. -->
+    <link rel="preconnect" href="https://ik.imagekit.io" crossorigin />
+
+    <!--
+      Loaded non-blocking (media=print flips to all on load). An @import inside
+      index.css chained the font request behind the CSS download and blocked
+      first paint.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      />
+    </noscript>
+
+    <!--
+      GA4. Put your Measurement ID on the line below — that is the only edit
+      needed. Find it at: Google Analytics > Admin > Data streams > Web.
+      Until it is replaced the guard below keeps the tag from loading, so a
+      placeholder never fires bogus requests.
+
+      Affiliate clicks then show up under Reports > Engagement > Events as
+      "affiliate_click", broken down by placement / merchant / post.
+    -->
+    <script>
+      window.__GA_ID__ = "G-HMFL8FYJZP";
+
+      if (window.__GA_ID__ && window.__GA_ID__.indexOf("XXXX") === -1) {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () {
+          window.dataLayer.push(arguments);
+        };
+        gtag("js", new Date());
+        gtag("config", window.__GA_ID__);
+
+        var gaTag = document.createElement("script");
+        gaTag.async = true;
+        gaTag.src =
+          "https://www.googletagmanager.com/gtag/js?id=" + window.__GA_ID__;
+        document.head.appendChild(gaTag);
+      }
+    </script>
+
     <style>
       .prose a, .prose a strong, .prose a * {
         color: #60a5fa !important;
