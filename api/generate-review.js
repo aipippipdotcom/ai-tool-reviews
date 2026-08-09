@@ -107,13 +107,15 @@ function toTextStream(upstream, { onText, onDone } = {}) {
 export default async function handler(request) {
   if (request.method !== 'POST') return json({ error: 'POST only.' }, 405)
 
+  // Authorise before touching configuration: reporting whether a key exists is
+  // information a stranger has no business learning.
+  const gate = await requireAdmin(request)
+  if (!gate.ok) return json({ error: gate.error }, gate.status)
+
   const apiKey = process.env.DEEPSEEK_API_KEY
   if (!apiKey) {
     return json({ error: 'DEEPSEEK_API_KEY is not set on the server.' }, 500)
   }
-
-  const gate = await requireAdmin(request)
-  if (!gate.ok) return json({ error: gate.error }, gate.status)
 
   let body
   try {
