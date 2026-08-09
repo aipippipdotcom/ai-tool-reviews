@@ -1,5 +1,6 @@
 import { fetchSalesPage, isTrackerUrl } from './_research.js'
-import { buildMessages, MIN_WORDS } from './_prompt.js'
+import { buildMessages, buildRoundupMessages, MIN_WORDS } from './_prompt.js'
+import { buildCandidates, formatCandidates } from './_roundup.js'
 
 export const config = { runtime: 'edge' }
 
@@ -130,6 +131,8 @@ export default async function handler(request) {
     return json({ error: 'Malformed request.' }, 400)
   }
 
+  if (body.mode === 'roundup') return handleRoundup(body, apiKey)
+
   const productName = String(body.productName || '').trim()
   const affiliateUrl = String(body.affiliateUrl || '').trim()
   const salesPageUrl = String(body.salesPageUrl || '').trim()
@@ -145,6 +148,23 @@ export default async function handler(request) {
   const research = await fetchSalesPage(researchUrl)
   research.usedTracker = !salesPageUrl && isTrackerUrl(affiliateUrl)
 
+  return streamCompletion(
+    apiKey,
+    buildMessages({ productName, affiliateUrl, notes, categoryName, research }),
+    {
+      // Surfaced in the UI so a silent scrape failure is never mistaken for
+      // a well-researched article.
+      'x-research-ok': research.ok ? '1' : '0',
+      'x-research-note': encodeURIComponent(
+        research.ok
+          ? `Read sales page: ${research.finalUrl}`
+          : `Sales page not read — ${research.error}`
+      ),
+    }
+  )
+}
+
+async function streamCompletion(apiKey, messages, extraHeaders = {}) {
   const upstream = await fetch(DEEPSEEK_URL, {
     method: 'POST',
     headers: {
@@ -160,7 +180,7 @@ export default async function handler(request) {
       thinking: { type: 'disabled' },
       temperature: 1.0,
       max_tokens: 8192,
-      messages: buildMessages({ productName, affiliateUrl, notes, categoryName, research }),
+      messages,
     }),
   })
 
@@ -193,15 +213,58 @@ export default async function handler(request) {
     headers: {
       'content-type': 'text/plain; charset=utf-8',
       'cache-control': 'no-store',
-      // Surfaced in the UI so a silent scrape failure is never mistaken for
-      // a well-researched article.
-      'x-research-ok': research.ok ? '1' : '0',
-      'x-research-note': encodeURIComponent(
-        research.ok
-          ? `Read sales page: ${research.finalUrl}`
-          : `Sales page not read — ${research.error}`
-      ),
       'x-min-words': String(MIN_WORDS),
+      ...extraHeaders,
     },
   })
+}
+
+/**
+ * Ranks products the site has already reviewed.
+ *
+ * The facts come from those reviews rather than from the model, and each entry
+ * links back to its full review, so a roundup strengthens the pages it draws
+ * from instead of competing with them.
+ */
+async function handleRoundup(body, apiKey) {
+  const categoryId = String(body.categoryId || '').trim()
+  const categoryName = String(body.categoryName || '').trim()
+  const count = Math.min(10, Math.max(3, Number(body.count) || 7))
+  const year = String(body.year || '').trim() || String(new Date().getUTCFullYear())
+
+  if (!categoryId) return json({ error: 'Pick a category to round up.' }, 400)
+
+  // Over-fetch: reviews without an outbound link cannot fill a slot.
+  const posts = await sb(
+    `posts?published=eq.true&category_id=eq.${encodeURIComponent(categoryId)}` +
+      `&select=title,slug,excerpt,content,view_count&order=view_count.desc&limit=${count * 3}`
+  )
+
+  const candidates = buildCandidates(posts || [], count)
+  if (candidates.length < 3) {
+    return json(
+      {
+        error: `Only ${candidates.length} review(s) in this category have an affiliate link. A roundup needs at least 3.`,
+      },
+      400
+    )
+  }
+
+  return streamCompletion(
+    apiKey,
+    buildRoundupMessages({
+      categoryName,
+      year,
+      candidates: formatCandidates(candidates),
+      notes: String(body.notes || ''),
+    }),
+    {
+      'x-research-ok': '1',
+      'x-research-note': encodeURIComponent(
+        `Built from ${candidates.length} of your published reviews: ${candidates
+          .map((c) => c.productName)
+          .join(', ')}`
+      ),
+    }
+  )
 }

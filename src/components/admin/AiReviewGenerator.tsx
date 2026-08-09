@@ -32,6 +32,8 @@ interface AiReviewGeneratorProps {
 }
 
 const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
+  const [mode, setMode] = useState<"review" | "roundup">("review");
+  const [count, setCount] = useState(7);
   const [productName, setProductName] = useState("");
   const [affiliateUrl, setAffiliateUrl] = useState("");
   const [salesPageUrl, setSalesPageUrl] = useState("");
@@ -49,7 +51,7 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
 
   const draft: ReviewDraft = parseReviewDraft(raw);
   const words = countWords(draft.content);
-  const issues = running || !raw ? [] : reviewDraftIssues(draft, minWords);
+  const issues = running || !raw ? [] : reviewDraftIssues(draft, minWords, mode);
   const trackerWarning = !salesPageUrl.trim() && isTrackerUrl(affiliateUrl);
 
   const stop = () => {
@@ -59,13 +61,13 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
   };
 
   const generate = async () => {
-    if (!productName.trim() || !affiliateUrl.trim()) {
-      toast.error("Product name and affiliate URL are both required.");
-      return;
-    }
     // Every post needs one to save, so ask now rather than after the writing.
     if (!categoryId) {
       toast.error("Pick a category first.");
+      return;
+    }
+    if (mode === "review" && (!productName.trim() || !affiliateUrl.trim())) {
+      toast.error("Product name and affiliate URL are both required.");
       return;
     }
 
@@ -93,11 +95,17 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
           authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          mode,
+          count,
+          categoryId,
           productName: productName.trim(),
           affiliateUrl: affiliateUrl.trim(),
           salesPageUrl: salesPageUrl.trim(),
           notes,
-          categoryName: categories.find((c) => c.id === categoryId)?.name ?? "",
+          categoryName: (categories.find((c) => c.id === categoryId)?.name ?? "").replace(
+            /^Review\s+/i,
+            ""
+          ),
         }),
       });
 
@@ -156,16 +164,56 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+        <div className="flex gap-2">
+          {(
+            [
+              ["review", "Single review", "One product, researched from its sales page"],
+              ["roundup", "Roundup (Best of)", "Ranks products you have already reviewed"],
+            ] as const
+          ).map(([value, label, hint]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setMode(value)}
+              title={hint}
+              className={`flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
+                mode === value
+                  ? "border-primary/50 bg-primary/10 text-primary"
+                  : "border-border bg-secondary text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="text-sm font-medium mb-1.5 block">Product name *</label>
-            <Input
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              placeholder="StoryCraft Kids"
-              className="bg-secondary border-border"
-            />
-          </div>
+          {mode === "review" ? (
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Product name *</label>
+              <Input
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                placeholder="StoryCraft Kids"
+                className="bg-secondary border-border"
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">How many products</label>
+              <select
+                value={count}
+                onChange={(e) => setCount(Number(e.target.value))}
+                className="w-full h-10 rounded-md border border-border bg-secondary px-3 text-sm"
+              >
+                {[5, 7, 10].map((n) => (
+                  <option key={n} value={n}>
+                    Top {n}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="text-sm font-medium mb-1.5 block">Category *</label>
             <select
@@ -183,7 +231,15 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
           </div>
         </div>
 
-        <div>
+        {mode === "roundup" && (
+          <p className="rounded-lg border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+            Built from your most-viewed published reviews in this category. Each entry
+            reuses that review's own affiliate link and links back to it, so the roundup
+            feeds the pages it draws from. Reviews with no outbound link are skipped.
+          </p>
+        )}
+
+        <div className={mode === "roundup" ? "hidden" : undefined}>
           <label className="text-sm font-medium mb-1.5 block">Affiliate URL *</label>
           <Input
             value={affiliateUrl}
@@ -196,7 +252,7 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
           </p>
         </div>
 
-        <div>
+        <div className={mode === "roundup" ? "hidden" : undefined}>
           <label className="text-sm font-medium mb-1.5 block">
             Sales page URL{" "}
             <span className="text-muted-foreground font-normal">
@@ -251,7 +307,7 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
           ) : (
             <Button onClick={generate} className="gap-2 glow">
               <Sparkles className="h-4 w-4" />
-              Generate review
+              {mode === "roundup" ? `Generate top ${count} roundup` : "Generate review"}
             </Button>
           )}
           {running && (

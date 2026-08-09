@@ -174,6 +174,60 @@ Remember: at least ${MIN_WORDS} words, the <<<META>>> / <<<CONTENT>>> envelope, 
   ];
 }
 
+/**
+ * A roundup is a different article: many products, ranked, each with its own
+ * verdict and link. It reuses the voice and formatting rules above and replaces
+ * the structure and the conversion placement.
+ */
+export function buildRoundupMessages({ categoryName, year, candidates, notes }) {
+  const count = candidates.split('PRODUCT ').length - 1
+
+  const user = `Write a roundup article ranking the best ${categoryName} of ${year}.
+
+You are ranking ${count} products. Every fact about each one comes from the
+evidence below, which is drawn from reviews you already published. Invent
+nothing, and where the evidence is thin about a product, say less about it
+rather than filling the gap.
+
+STRUCTURE — <h3> for each product, <h4> for sub-points:
+1. Opening, 2-3 paragraphs, no heading. Say who this list is for and how you
+   picked. Be specific about the criteria, not "we tested extensively".
+2. A comparison table of all ${count} products: name, price, best for. One
+   table, three or four columns.
+3. One <h3> section per product, ranked best first, headed
+   "1. <Product Name>" and so on. In each:
+   - Two or three paragraphs on what it does and who it suits.
+   - What is weak about it. Every entry needs one honest reservation.
+   - The [cta] shortcode for that product, with its own affiliate URL.
+   - Link the product name to its internal review URL at least once, as
+     <a href="/post/...">Product Name</a>. This is how a reader gets the full
+     review, and it is the whole reason a roundup earns its place.
+4. "How To Choose" — a short section on the deciding factors.
+5. Frequently Asked Questions — 5 to 7 <h4> questions with direct answers.
+6. "My Pick" — name one winner and one runner-up, and say why in plain terms.
+
+CONVERSION:
+- One [cta] per product, inside that product's section, carrying that
+  product's own affiliate URL. Never reuse one product's URL for another.
+- No [verdict] and no [proscons] in a roundup; those belong to single reviews.
+- Give each [cta] its own wording. ${count} identical buttons reads as a script.
+
+${notes?.trim() ? `OPERATOR NOTES — these override the evidence where they conflict:\n${notes.trim()}\n` : ''}
+LENGTH: at least ${MIN_WORDS} words.
+
+EVIDENCE
+========
+${candidates}
+
+Return the same <<<META>>> / <<<CONTENT>>> envelope. The title should read like
+a person wrote it and contain the year.`
+
+  return [
+    { role: 'system', content: SYSTEM },
+    { role: 'user', content: user },
+  ]
+}
+
 /** Asks for more depth when the first pass lands short of the floor. */
 export function buildContinueMessages(previous, wordsSoFar) {
   return [

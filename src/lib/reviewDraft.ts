@@ -207,8 +207,14 @@ export function parseReviewDraft(raw: string): ReviewDraft {
   return draft;
 }
 
+export type DraftMode = "review" | "roundup";
+
 /** Problems worth blocking on before this reaches the editor. */
-export function reviewDraftIssues(draft: ReviewDraft, minWords: number): string[] {
+export function reviewDraftIssues(
+  draft: ReviewDraft,
+  minWords: number,
+  mode: DraftMode = "review"
+): string[] {
   const issues: string[] = [];
   const words = countWords(draft.content);
 
@@ -217,11 +223,20 @@ export function reviewDraftIssues(draft: ReviewDraft, minWords: number): string[
   if (words < minWords) issues.push(`${words} words — under the ${minWords} floor.`);
   if (!draft.metaDescription) issues.push("No meta description.");
   if (!draft.excerpt) issues.push("No excerpt.");
-  if (!/\[verdict/i.test(draft.content)) issues.push("No [verdict] block.");
   const ctas = (draft.content.match(/\[cta\b/gi) || []).length;
-  if (!ctas) issues.push("No [cta] block.");
-  else if (ctas < 2) issues.push("Only one [cta]; a review should offer two or three.");
-  if (!/\[proscons/i.test(draft.content)) issues.push("No [proscons] block.");
+
+  // A roundup carries one CTA per product instead of a single verdict.
+  if (mode === "review") {
+    if (!/\[verdict/i.test(draft.content)) issues.push("No [verdict] block.");
+    if (!/\[proscons/i.test(draft.content)) issues.push("No [proscons] block.");
+    if (!ctas) issues.push("No [cta] block.");
+    else if (ctas < 2) issues.push("Only one [cta]; a review should offer two or three.");
+  } else {
+    if (ctas < 3) issues.push(`Only ${ctas} [cta] block(s); a roundup needs one per product.`);
+    if (!/href="\/post\//i.test(draft.content)) {
+      issues.push("No links back to your own reviews; that is the point of a roundup.");
+    }
+  }
   if (/<h[12]\b/i.test(draft.content)) issues.push("Body contains an h1 or h2; the page supplies those.");
   if (/<img\b/i.test(draft.content)) issues.push("Body contains an image; add those yourself.");
   // Tiptap has no table extension, so a table is flattened into a run-on
