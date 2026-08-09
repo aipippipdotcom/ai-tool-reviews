@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
-
 @layer base {
   :root {
     --background: 222 47% 6%;
@@ -95,5 +93,329 @@
     background: hsl(222, 40%, 9% / 0.7);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+  }
+}
+
+/*
+ * Affiliate / conversion blocks.
+ *
+ * Hand-authored rather than @apply'd utilities on purpose: this exact markup is
+ * also emitted server-side by api/_render.js, which Tailwind never scans. Real
+ * CSS classes cannot be purged, so both renderers stay in sync.
+ */
+@layer components {
+  .aff-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.75rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, hsl(192 91% 56%), hsl(210 100% 62%));
+    color: hsl(222 47% 6%) !important;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none !important;
+    box-shadow: 0 0 24px hsl(192 91% 56% / 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  }
+
+  .aff-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+    box-shadow: 0 0 36px hsl(192 91% 56% / 0.4);
+  }
+
+  .aff-btn:active {
+    transform: translateY(0);
+  }
+
+  .aff-btn--block {
+    display: flex;
+    width: 100%;
+  }
+
+  .aff-btn--lg {
+    padding: 1.0625rem 2rem;
+    font-size: 1.0625rem;
+  }
+
+  /* --- Shared card chrome --- */
+  .aff-box {
+    margin: 2.5rem 0;
+    padding: 1.75rem;
+    border: 1px solid hsl(192 91% 56% / 0.28);
+    border-radius: 1rem;
+    background:
+      radial-gradient(120% 140% at 100% 0%, hsl(192 91% 56% / 0.09), transparent 60%),
+      hsl(222 40% 9%);
+  }
+
+  .aff-box__eyebrow {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-display);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: hsl(192 91% 56%);
+  }
+
+  .aff-box__title {
+    margin: 0 0 0.625rem;
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: hsl(210 40% 96%);
+  }
+
+  .aff-box__summary {
+    margin: 0 0 1.25rem;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: hsl(215 20% 70%);
+  }
+
+  .aff-box__note {
+    margin: 0.875rem 0 0;
+    font-size: 0.8125rem;
+    color: hsl(215 20% 55%);
+  }
+
+  .aff-box__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.875rem 1.25rem;
+  }
+
+  /* --- Price --- */
+  .aff-price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-family: var(--font-display);
+  }
+
+  .aff-price__now {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: hsl(210 40% 96%);
+  }
+
+  .aff-price__was {
+    font-size: 1rem;
+    color: hsl(215 20% 55%);
+    text-decoration: line-through;
+  }
+
+  /* --- Rating --- */
+  .aff-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .aff-stars {
+    position: relative;
+    display: inline-block;
+    font-size: 1.125rem;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    color: hsl(222 25% 24%);
+  }
+
+  .aff-stars::before {
+    content: "★★★★★";
+  }
+
+  .aff-stars__fill {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    color: hsl(42 96% 58%);
+  }
+
+  .aff-stars__fill::before {
+    content: "★★★★★";
+  }
+
+  .aff-rating__score {
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: hsl(210 40% 96%);
+  }
+
+  .aff-rating__max {
+    font-size: 0.8125rem;
+    color: hsl(215 20% 55%);
+  }
+
+  /* --- Pros / cons --- */
+  .aff-proscons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 2.5rem 0;
+  }
+
+  @media (min-width: 640px) {
+    .aff-proscons {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .aff-col {
+    padding: 1.375rem;
+    border: 1px solid hsl(222 25% 16%);
+    border-radius: 1rem;
+    background: hsl(222 40% 9%);
+  }
+
+  .aff-col--pros {
+    border-color: hsl(152 60% 45% / 0.3);
+  }
+
+  .aff-col--cons {
+    border-color: hsl(0 62% 55% / 0.3);
+  }
+
+  .aff-col__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.875rem;
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .aff-col--pros .aff-col__head {
+    color: hsl(152 60% 55%);
+  }
+
+  .aff-col--cons .aff-col__head {
+    color: hsl(0 72% 65%);
+  }
+
+  .aff-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aff-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.625rem;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: hsl(210 40% 88%);
+  }
+
+  .aff-list li:last-child {
+    margin-bottom: 0;
+  }
+
+  .aff-list li::before {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 700;
+  }
+
+  .aff-col--pros .aff-list li::before {
+    content: "✓";
+    color: hsl(152 60% 55%);
+  }
+
+  .aff-col--cons .aff-list li::before {
+    content: "✕";
+    color: hsl(0 72% 65%);
+  }
+
+  /* --- Disclosure --- */
+  .aff-disclosure {
+    display: flex;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid hsl(222 25% 16%);
+    border-radius: 0.625rem;
+    background: hsl(222 30% 12% / 0.6);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: hsl(215 20% 62%);
+  }
+
+  .aff-disclosure a {
+    color: hsl(192 91% 56%);
+    text-decoration: underline;
+  }
+
+  /* --- Sticky mobile bar --- */
+  .aff-sticky {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+    border-top: 1px solid hsl(192 91% 56% / 0.25);
+    background: hsl(222 40% 9% / 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transform: translateY(110%);
+    transition: transform 0.25s ease;
+  }
+
+  .aff-sticky[data-visible="true"] {
+    transform: translateY(0);
+  }
+
+  .aff-sticky__meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .aff-sticky__title {
+    display: block;
+    overflow: hidden;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: hsl(210 40% 92%);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .aff-sticky__price {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    color: hsl(192 91% 56%);
+  }
+
+  .aff-sticky .aff-btn {
+    flex-shrink: 0;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+
+  @media (min-width: 1024px) {
+    .aff-sticky {
+      display: none;
+    }
   }
 }
