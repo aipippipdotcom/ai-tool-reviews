@@ -4,16 +4,33 @@
 export const SHORTCODE_RE =
   /\[(cta|verdict|proscons)\b([^\]]*)\]|\[(pros|cons)\]([\s\S]*?)\[\/\3\]/gi;
 
+/**
+ * A shortcode is stored as text, so the editor escapes its quotes: what reaches
+ * the database is [proscons pros=&quot;A|B&quot;]. Without decoding, attribute
+ * parsing finds nothing and the whole conversion block renders as empty and
+ * disappears from the published page.
+ */
+export function decodeEntities(value) {
+  return String(value || "")
+    .replace(/&quot;|&#34;/gi, '"')
+    .replace(/&apos;|&#39;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&nbsp;/gi, " ")
+    // Ampersand last, so a literal "&amp;quot;" is not turned into a quote.
+    .replace(/&amp;/gi, "&");
+}
+
 export function parseAttrs(raw) {
   const attrs = {};
   const re = /(\w+)="([^"]*)"/g;
   let m;
-  while ((m = re.exec(raw || ""))) attrs[m[1]] = m[2];
+  while ((m = re.exec(decodeEntities(raw)))) attrs[m[1]] = m[2];
   return attrs;
 }
 
 export function splitList(value) {
-  return String(value || "")
+  return decodeEntities(value)
     .split("|")
     .map((s) => s.trim())
     .filter(Boolean);
