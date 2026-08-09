@@ -29,6 +29,9 @@ import {
   AlignRight,
   Minus,
   Code,
+  Award,
+  MousePointerClick,
+  Columns2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -64,6 +67,19 @@ const ToolbarButton = ({
     {children}
   </button>
 );
+
+/**
+ * Conversion blocks are stored as plain-text shortcodes in the post body and
+ * expanded at render time by PostContent / api/_render.js. Keeping them as text
+ * means the 370 existing posts need no migration.
+ */
+const SHORTCODE_TEMPLATES = {
+  verdict:
+    '[verdict rating="4.5" title="Product Name" summary="One-sentence verdict a skimmer can act on." price="$9.95" was="$29" url="https://affiliate-link" label="Get It Now" note="Instant download · 30-day money-back guarantee"]',
+  cta: '[cta title="Ready to try it?" price="$9.95" url="https://affiliate-link" label="Get It Now" note="Instant access"]',
+  proscons:
+    '[proscons pros="First upside|Second upside|Third upside" cons="First downside|Second downside"]',
+};
 
 const sanitizeFileName = (name: string) =>
   name
@@ -231,6 +247,21 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     }
   }, [editor]);
 
+  const insertShortcode = useCallback(
+    (kind: keyof typeof SHORTCODE_TEMPLATES) => {
+      if (!editor) return;
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "paragraph",
+          content: [{ type: "text", text: SHORTCODE_TEMPLATES[kind] }],
+        })
+        .run();
+    },
+    [editor]
+  );
+
   // Upload ảnh từ toolbar button
   const handleImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -338,6 +369,18 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         )}
         <ToolbarButton onClick={() => fileInputRef.current?.click()} title="Insert Image">
           <ImageIcon size={s} />
+        </ToolbarButton>
+
+        <div className="w-px h-5 bg-border mx-1" />
+
+        <ToolbarButton onClick={() => insertShortcode("verdict")} title="Insert Verdict box (rating + price + CTA)">
+          <Award size={s} />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => insertShortcode("cta")} title="Insert CTA button block">
+          <MousePointerClick size={s} />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => insertShortcode("proscons")} title="Insert Pros / Cons block">
+          <Columns2 size={s} />
         </ToolbarButton>
 
         <div className="w-px h-5 bg-border mx-1" />

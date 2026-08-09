@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import CategoryIcon from "@/components/CategoryIcon";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Helmet } from "react-helmet-async";
+import Seo, { BASE_URL, SITE_NAME } from "@/components/Seo";
 import { ArrowRight } from "lucide-react";
 
 const CategoriesPage = () => {
@@ -21,11 +21,24 @@ const CategoriesPage = () => {
 
   return (
     <>
-      <Helmet>
-        <link rel="canonical" href="https://aipippip.net/categories" />
-        <title>All Categories — AIPipPip</title>
-        <meta name="description" content="Browse all AI tool review categories on AIPipPip" />
-      </Helmet>
+      <Seo
+        title={`All Categories — ${SITE_NAME}`}
+        description={`Every AI tool category we review on ${SITE_NAME} — writing, video, design, marketing, voice and more.`}
+        canonical={`${BASE_URL}/categories`}
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: BASE_URL },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Categories",
+              item: `${BASE_URL}/categories`,
+            },
+          ],
+        }}
+      />
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-10">

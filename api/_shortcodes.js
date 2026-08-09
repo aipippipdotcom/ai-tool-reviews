@@ -1,0 +1,78 @@
+// Shared shortcode spec. Mirrored on the client in src/lib/shortcodes.ts —
+// keep the two in sync so server HTML and hydrated HTML agree.
+
+export const SHORTCODE_RE =
+  /\[(cta|verdict|proscons)\b([^\]]*)\]|\[(pros|cons)\]([\s\S]*?)\[\/\3\]/gi;
+
+export function parseAttrs(raw) {
+  const attrs = {};
+  const re = /(\w+)="([^"]*)"/g;
+  let m;
+  while ((m = re.exec(raw || ""))) attrs[m[1]] = m[2];
+  return attrs;
+}
+
+export function splitList(value) {
+  return String(value || "")
+    .split("|")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Walks the content and returns an ordered list of
+ * { type: 'html', value } | { type: 'cta'|'verdict'|'proscons'|'pros'|'cons', attrs, items }
+ */
+export function tokenize(content) {
+  const tokens = [];
+  let last = 0;
+  const re = new RegExp(SHORTCODE_RE.source, "gi");
+  let m;
+
+  while ((m = re.exec(content))) {
+    if (m.index > last) {
+      tokens.push({ type: "html", value: content.slice(last, m.index) });
+    }
+    if (m[1]) {
+      tokens.push({ type: m[1].toLowerCase(), attrs: parseAttrs(m[2]) });
+    } else {
+      tokens.push({ type: m[3].toLowerCase(), items: splitList(m[4]) });
+    }
+    last = m.index + m[0].length;
+  }
+
+  if (last < content.length) {
+    tokens.push({ type: "html", value: content.slice(last) });
+  }
+  return tokens;
+}
+
+const INTERNAL_HOSTS = ["aipippip.net", "www.aipippip.net"];
+
+export function isExternalHref(href) {
+  if (!/^https?:\/\//i.test(href || "")) return false;
+  const host = href.replace(/^https?:\/\//i, "").split(/[/?#]/)[0].toLowerCase();
+  return !INTERNAL_HOSTS.includes(host);
+}
+
+/**
+ * Every outbound link in a review is a monetised link, so all of them get
+ * rel="sponsored" (Google's stated requirement) plus a hook for click tracking.
+ */
+export function rewriteExternalLinks(html) {
+  return String(html || "").replace(/<a\b([^>]*)>/gi, (tag, attrs) => {
+    const href = (attrs.match(/href="([^"]*)"/i) || [])[1];
+    if (!isExternalHref(href)) return tag;
+
+    const cleaned = attrs
+      .replace(/\s*\brel="[^"]*"/gi, "")
+      .replace(/\s*\btarget="[^"]*"/gi, "")
+      .replace(/\s*\bdata-aff-link="[^"]*"/gi, "")
+      .trim();
+
+    return `<a ${cleaned} target="_blank" rel="sponsored nofollow noopener noreferrer" data-aff-link="inline">`;
+  });
+}
+
+// The sticky CTA is client-only, so offer selection lives solely in
+// src/lib/shortcodes.ts — nothing server-side needs it.
