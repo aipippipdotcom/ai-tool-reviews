@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -20,20 +20,30 @@ const Index = () => {
     },
   });
 
-  const { data: posts } = useQuery({
-    queryKey: ["posts-home"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("posts")
-        .select("id, title, slug, excerpt, cover_image, category_id, created_at, published")
-        .eq("published", true)
-        .order("created_at", { ascending: false });
-      return (data ?? []) as any[];
-    },
+  /**
+   * One bounded query per category rather than one unbounded query for the
+   * whole site.
+   *
+   * The page shows six posts per category but used to download every published
+   * post and discard the rest client-side: 177KB of Supabase egress on every
+   * visit to render 26KB of content. The queries run in parallel, so this costs
+   * no extra wall-clock.
+   */
+  const postQueries = useQueries({
+    queries: (categories ?? []).map((cat) => ({
+      queryKey: ["home-category-posts", cat.id, POSTS_PER_CATEGORY],
+      queryFn: async () => {
+        const { data } = await supabase
+          .from("posts")
+          .select("id, title, slug, excerpt, cover_image, created_at")
+          .eq("published", true)
+          .eq("category_id", cat.id)
+          .order("created_at", { ascending: false })
+          .limit(POSTS_PER_CATEGORY);
+        return data ?? [];
+      },
+    })),
   });
-
-  const getPostsForCategory = (categoryId: string) =>
-    (posts ?? []).filter((p) => p.category_id === categoryId).slice(0, POSTS_PER_CATEGORY);
 
   return (
     <>
@@ -67,13 +77,13 @@ const Index = () => {
           <div className="my-8">
             <SearchBar />
           </div>
-          {(categories ?? []).map((cat) => (
+          {(categories ?? []).map((cat, i) => (
             <CategorySection
               key={cat.id}
               name={cat.name}
               slug={cat.slug}
               icon={cat.icon}
-              posts={getPostsForCategory(cat.id)}
+              posts={postQueries[i]?.data ?? []}
             />
           ))}
           <EmailSubscribe />
