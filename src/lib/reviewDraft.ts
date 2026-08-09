@@ -77,6 +77,30 @@ export function countWords(html: string): number {
   return text ? text.split(/\s+/).length : 0;
 }
 
+/**
+ * Enforces in code what the prompt asks for in words.
+ *
+ * Models drift back to their defaults over a long generation, so the dash ban
+ * and the quote style are applied here rather than trusted to instructions.
+ * Zero-width characters are stripped because they survive copy-paste invisibly
+ * and are a known machine-text fingerprint.
+ */
+export function sanitizeGenerated(text: string): string {
+  return String(text || "")
+    .replace(/[\u200b-\u200d\u2060\ufeff]/g, "")
+    .replace(/\u00a0/g, " ")
+    .replace(/[“”„‟]/g, '"')
+    .replace(/[‘’‚‛]/g, "'")
+    // "$25–$75" reads as a range, so say so.
+    .replace(/(\d)\s*[–—]\s*(\$?\d)/g, "$1 to $2")
+    .replace(/\s*[–—]\s*/g, ", ")
+    // The substitution can double up against punctuation already there.
+    .replace(/,\s*,+/g, ",")
+    .replace(/,\s*([.!?;:])/g, "$1")
+    .replace(/\(\s*,\s*/g, "(")
+    .replace(/\s+,/g, ",");
+}
+
 export function parseReviewDraft(raw: string): ReviewDraft {
   const draft: ReviewDraft = {
     title: "",
@@ -89,7 +113,7 @@ export function parseReviewDraft(raw: string): ReviewDraft {
     metaComplete: false,
   };
 
-  let text = String(raw || "");
+  let text = sanitizeGenerated(raw);
 
   // Models occasionally wrap the whole reply in a code fence.
   text = text.replace(/^\s*```(?:html|markdown)?\s*\n?/, "").replace(/\n?```\s*$/, "");

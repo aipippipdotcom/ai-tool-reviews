@@ -348,9 +348,24 @@
     color: hsl(210 40% 96%);
   }
 
-  /* Tables are the one thing that must never widen the page. */
-  .article .table-scroll {
+  /* A comparison table must never widen the page. Narrow screens scroll it
+     horizontally instead; the row groups keep their alignment. */
+  @media (max-width: 640px) {
+    .article table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  }
+
+  /* Tiptap wraps tables in this while editing. */
+  .article .tableWrapper {
+    max-width: 100%;
     overflow-x: auto;
+  }
+
+  .article .selectedCell {
+    background: hsl(192 91% 56% / 0.12);
   }
 }
 

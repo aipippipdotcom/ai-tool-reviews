@@ -5,6 +5,10 @@ import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
+import Table from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
 import { toast } from "sonner";
 import {
   Bold,
@@ -32,6 +36,10 @@ import {
   Award,
   MousePointerClick,
   Columns2,
+  Table as TableIcon,
+  Rows3,
+  Columns3,
+  X as XIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -157,6 +165,12 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       Underline,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder: "Start writing your review..." }),
+      // Without these, pasted or generated <table> markup is silently flattened
+      // into one run-on paragraph of concatenated cells.
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content,
     onUpdate: ({ editor }) => {
@@ -372,6 +386,37 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         <ToolbarButton onClick={() => fileInputRef.current?.click()} title="Insert Image">
           <ImageIcon size={s} />
         </ToolbarButton>
+
+        <div className="w-px h-5 bg-border mx-1" />
+
+        <ToolbarButton
+          onClick={() =>
+            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+          }
+          title="Insert table"
+        >
+          <TableIcon size={s} />
+        </ToolbarButton>
+        {/* Row and column controls only mean anything inside a table. */}
+        {editor.isActive("table") && (
+          <>
+            <ToolbarButton onClick={() => editor.chain().focus().addRowAfter().run()} title="Add row">
+              <Rows3 size={s} />
+            </ToolbarButton>
+            <ToolbarButton onClick={() => editor.chain().focus().addColumnAfter().run()} title="Add column">
+              <Columns3 size={s} />
+            </ToolbarButton>
+            <ToolbarButton onClick={() => editor.chain().focus().deleteRow().run()} title="Delete row">
+              <Rows3 size={s} className="opacity-50" />
+            </ToolbarButton>
+            <ToolbarButton onClick={() => editor.chain().focus().deleteColumn().run()} title="Delete column">
+              <Columns3 size={s} className="opacity-50" />
+            </ToolbarButton>
+            <ToolbarButton onClick={() => editor.chain().focus().deleteTable().run()} title="Delete table">
+              <XIcon size={s} />
+            </ToolbarButton>
+          </>
+        )}
 
         <div className="w-px h-5 bg-border mx-1" />
 

@@ -4,6 +4,7 @@ import {
   reviewDraftIssues,
   countWords,
   slugify,
+  sanitizeGenerated,
 } from "./reviewDraft";
 
 const FULL = `<<<META>>>
@@ -67,6 +68,47 @@ describe("parseReviewDraft", () => {
     const draft = parseReviewDraft("<<<META>>>\ntitle: T\nslug: Some Title Review\n<<<CONTENT>>>\n<p>x</p>");
 
     expect(draft.slug).toBe("some-title-review");
+  });
+});
+
+describe("sanitizeGenerated", () => {
+  it("removes em and en dashes the house style bans", () => {
+    const out = sanitizeGenerated("It works — mostly — and I liked it.");
+
+    expect(out).not.toMatch(/[–—]/);
+    expect(out).toBe("It works, mostly, and I liked it.");
+  });
+
+  it("turns a numeric range into words", () => {
+    expect(sanitizeGenerated("Freelancers charge $25–$75 each.")).toBe(
+      "Freelancers charge $25 to $75 each."
+    );
+  });
+
+  it("does not leave doubled punctuation behind", () => {
+    expect(sanitizeGenerated("Good value — but read this.")).not.toMatch(/,\s*,/);
+    expect(sanitizeGenerated("Worth it —.")).toBe("Worth it.");
+  });
+
+  // Zero-width characters survive copy-paste invisibly and fingerprint the text.
+  it("strips zero-width characters", () => {
+    const out = sanitizeGenerated("clean​text‍﻿ here");
+
+    expect(out).toBe("cleantext here");
+    expect(out).not.toMatch(/[​-‍⁠﻿]/);
+  });
+
+  it("normalises smart quotes to straight ones", () => {
+    expect(sanitizeGenerated("“It’s good”")).toBe("\"It's good\"");
+  });
+
+  it("is applied while parsing a draft", () => {
+    const draft = parseReviewDraft(
+      "<<<META>>>\ntitle: A — B\n<<<CONTENT>>>\n<p>One — two</p>"
+    );
+
+    expect(draft.title).toBe("A, B");
+    expect(draft.content).not.toMatch(/[–—]/);
   });
 });
 
