@@ -286,9 +286,12 @@
   }
 
   /* --- Media ------------------------------------------------------------ */
+  /* Natural size, capped at the column. width:100% used to enlarge a small
+     screenshot until it went soft. */
   .article img {
     display: block;
-    width: 100%;
+    width: auto;
+    max-width: 100%;
     height: auto;
     margin-inline: auto;
     border: 1px solid hsl(222 25% 16%);

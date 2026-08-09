@@ -252,13 +252,15 @@ const PostPage = () => {
             )}
 
             {post.cover_image && (
+              // No aspect-video/object-cover: the cover is shown whole rather
+              // than cropped to 16:9. Dimensions are omitted with it, because
+              // hardcoding 1200x675 for an image of unknown shape reserves the
+              // wrong space and shifts the layout more than reserving none.
               <img
                 src={post.cover_image}
                 alt={post.title}
-                width={1200}
-                height={675}
                 fetchPriority="high"
-                className="w-full rounded-xl mt-9 aspect-video object-cover border border-border"
+                className="w-full h-auto rounded-xl mt-9 border border-border"
               />
             )}
 

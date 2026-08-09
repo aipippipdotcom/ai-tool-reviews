@@ -220,9 +220,10 @@ export function renderPostBody(post, category) {
     ? `<p class="mt-5 text-lg md:text-xl leading-relaxed text-muted-foreground text-pretty">${esc(post.excerpt)}</p>`
     : "";
 
+  // Shown whole rather than cropped to 16:9, matching PostPage.
   const cover = post.cover_image
-    ? `<img src="${esc(post.cover_image)}" alt="${esc(post.title)}" width="1200" height="675"` +
-      ` class="w-full rounded-xl mt-9 aspect-video object-cover border border-border" fetchpriority="high"/>`
+    ? `<img src="${esc(post.cover_image)}" alt="${esc(post.title)}"` +
+      ` class="w-full h-auto rounded-xl mt-9 border border-border" fetchpriority="high"/>`
     : "";
 
   return shell(
