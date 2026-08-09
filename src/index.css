@@ -97,6 +97,264 @@
 }
 
 /*
+ * Article typography.
+ *
+ * Replaces a `prose prose-lg max-w-none [&_h2]:… [&_p]:…` utility string.
+ * max-w-none was the real problem: it removed Tailwind Typography's measure,
+ * so 18px text ran the full 768px column at ~90 characters per line against an
+ * optimum of 60–75. Long lines are what made the page feel cheap.
+ *
+ * Authored as CSS because api/_render.js emits this same markup server-side and
+ * Tailwind never scans it — real classes cannot be purged.
+ */
+@layer components {
+  .article {
+    --measure: 65ch;
+
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: hsl(210 18% 82%);
+  }
+
+  @media (min-width: 768px) {
+    .article {
+      font-size: 1.125rem;
+    }
+  }
+
+  /* Text keeps the measure; figures, rules and tables run the full column. */
+  .article > * {
+    max-width: var(--measure);
+    margin-inline: auto;
+  }
+
+  .article > figure,
+  .article > img,
+  .article > table,
+  .article > hr,
+  .article > pre {
+    max-width: 100%;
+  }
+
+  .article > * + * {
+    margin-top: 1.5em;
+  }
+
+  .article p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  /* --- Headings ---------------------------------------------------------
+   * h3 carries the sections in this content (2138 uses vs 238 h2), so it is
+   * sized as a real section break rather than a sub-sub-heading.
+   */
+  .article h2,
+  .article h3,
+  .article h4,
+  .article h5,
+  .article h6 {
+    margin: 2.75rem 0 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: hsl(210 40% 96%);
+    text-wrap: balance;
+    scroll-margin-top: 5rem;
+  }
+
+  .article h2 {
+    font-size: 1.75rem;
+  }
+
+  .article h3 {
+    font-size: 1.4375rem;
+  }
+
+  .article h4 {
+    font-size: 1.1875rem;
+  }
+
+  .article h5,
+  .article h6 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: hsl(192 91% 62%);
+  }
+
+  .article h2 + *,
+  .article h3 + *,
+  .article h4 + *,
+  .article h5 + *,
+  .article h6 + * {
+    margin-top: 0.75rem;
+  }
+
+  /* --- Inline ----------------------------------------------------------- */
+  .article strong {
+    font-weight: 650;
+    color: hsl(210 40% 96%);
+  }
+
+  .article em {
+    color: hsl(210 25% 88%);
+  }
+
+  .article a {
+    color: hsl(205 100% 70%);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: hsl(205 100% 70% / 0.4);
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  }
+
+  .article a:hover {
+    color: hsl(205 100% 80%);
+    text-decoration-color: currentColor;
+  }
+
+  .article a strong {
+    color: inherit;
+  }
+
+  /* The editor wraps link text in <u>; the anchor is already underlined. */
+  .article a u {
+    text-decoration: none;
+  }
+
+  .article mark {
+    padding: 0.1em 0.3em;
+    border-radius: 0.25rem;
+    background: hsl(192 91% 56% / 0.18);
+    color: hsl(210 40% 96%);
+  }
+
+  .article code {
+    padding: 0.15em 0.4em;
+    border-radius: 0.35rem;
+    background: hsl(222 30% 16%);
+    font-size: 0.875em;
+    color: hsl(192 91% 72%);
+  }
+
+  .article pre {
+    padding: 1.15rem 1.35rem;
+    border: 1px solid hsl(222 25% 16%);
+    border-radius: 0.75rem;
+    background: hsl(222 40% 8%);
+    overflow-x: auto;
+  }
+
+  .article pre code {
+    padding: 0;
+    background: none;
+    color: inherit;
+  }
+
+  /* --- Lists ------------------------------------------------------------ */
+  .article ul,
+  .article ol {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .article li {
+    margin-bottom: 0.5rem;
+    padding-left: 0.35rem;
+  }
+
+  .article li::marker {
+    color: hsl(192 91% 56%);
+  }
+
+  .article li:last-child {
+    margin-bottom: 0;
+  }
+
+  .article li > ul,
+  .article li > ol {
+    margin-top: 0.5rem;
+  }
+
+  /* --- Media ------------------------------------------------------------ */
+  .article img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-inline: auto;
+    border: 1px solid hsl(222 25% 16%);
+    border-radius: 0.875rem;
+  }
+
+  .article figure {
+    margin-block: 2rem;
+  }
+
+  .article figcaption {
+    margin-top: 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    text-align: center;
+    color: hsl(215 20% 55%);
+  }
+
+  /* --- Blocks ----------------------------------------------------------- */
+  .article blockquote {
+    margin: 2rem auto;
+    padding: 0.25rem 0 0.25rem 1.25rem;
+    border-left: 3px solid hsl(192 91% 56%);
+    font-size: 1.0625em;
+    color: hsl(210 30% 90%);
+  }
+
+  .article blockquote p + p {
+    margin-top: 1rem;
+  }
+
+  .article hr {
+    height: 1px;
+    margin-block: 2.75rem;
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(222 25% 24%) 20%,
+      hsl(222 25% 24%) 80%,
+      transparent
+    );
+  }
+
+  .article table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  .article th,
+  .article td {
+    padding: 0.75rem 1rem;
+    border: 1px solid hsl(222 25% 18%);
+    text-align: left;
+  }
+
+  .article th {
+    background: hsl(222 30% 13%);
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: hsl(210 40% 96%);
+  }
+
+  /* Tables are the one thing that must never widen the page. */
+  .article .table-scroll {
+    overflow-x: auto;
+  }
+}
+
+/*
  * Affiliate / conversion blocks.
  *
  * Hand-authored rather than @apply'd utilities on purpose: this exact markup is

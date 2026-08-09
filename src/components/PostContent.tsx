@@ -5,9 +5,8 @@ import ProsCons from "@/components/affiliate/ProsCons";
 import { rewriteExternalLinks, splitList, tokenize } from "@/lib/shortcodes";
 import { trackAffiliateClick } from "@/lib/analytics";
 
-/** Must stay identical to PROSE_CLASS in api/_render.js. */
-const PROSE_CLASS =
-  "prose prose-invert prose-lg max-w-none leading-relaxed [&_h2]:font-display [&_h2]:text-foreground [&_h3]:font-display [&_h3]:text-foreground [&_p]:text-white [&_a]:!text-blue-400 [&_a]:underline [&_a:hover]:text-blue-300 [&_strong]:text-foreground [&_li]:text-white";
+/** Must stay identical to PROSE_CLASS in api/_render.js. Styled in index.css. */
+const PROSE_CLASS = "article";
 
 interface PostContentProps {
   content: string;

@@ -165,7 +165,9 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     editorProps: {
       attributes: {
         class:
-          "min-h-[400px] p-4 focus:outline-none prose prose-invert max-w-none [&_h1]:font-display [&_h1]:text-3xl [&_h2]:font-display [&_h2]:text-2xl [&_h3]:font-display [&_h3]:text-xl [&_h4]:font-display [&_h4]:text-lg [&_h5]:font-display [&_h5]:text-base [&_p]:text-muted-foreground [&_a]:text-primary [&_strong]:text-foreground [&_li]:text-muted-foreground [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_h5]:text-foreground [&_blockquote]:border-primary/30 [&_blockquote]:text-muted-foreground [&_code]:bg-secondary [&_code]:text-primary [&_code]:px-1 [&_code]:rounded [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6",
+          // Same .article styles the published post uses, so the editor is a
+          // true preview rather than an approximation of one.
+          "article min-h-[400px] px-4 py-6 focus:outline-none",
       },
       // Xử lý paste ảnh
       handlePaste(view, event) {

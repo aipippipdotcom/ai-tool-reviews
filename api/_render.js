@@ -17,8 +17,8 @@ export function esc(str) {
     .replace(/>/g, "&gt;");
 }
 
-const PROSE_CLASS =
-  "prose prose-invert prose-lg max-w-none leading-relaxed [&_h2]:font-display [&_h2]:text-foreground [&_h3]:font-display [&_h3]:text-foreground [&_p]:text-white [&_a]:!text-blue-400 [&_a]:underline [&_a:hover]:text-blue-300 [&_strong]:text-foreground [&_li]:text-white";
+/** Must stay identical to PROSE_CLASS in src/components/PostContent.tsx. */
+const PROSE_CLASS = "article";
 
 function affLink(url, label, extraClass) {
   return (
@@ -178,26 +178,61 @@ function shell(inner) {
   );
 }
 
+/** Minutes to read, at 200 wpm. Mirrored in src/lib/utils.ts. */
+function readingTime(html) {
+  const words = String(html || "")
+    .replace(/<[^>]+>/g, " ")
+    .trim()
+    .split(/\s+/).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+const MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ");
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+
+// Layout mirrors src/pages/PostPage.tsx so the React takeover is invisible.
 export function renderPostBody(post, category) {
   const crumbs =
-    `<nav class="mb-8 text-sm text-muted-foreground">` +
-    `<a href="/" class="hover:text-primary">Home</a> <span class="text-border">/</span> ` +
+    `<nav class="mb-7 text-sm text-muted-foreground">` +
+    `<a href="/" class="hover:text-primary">Home</a><span class="text-border mx-1.5">/</span>` +
     (category
-      ? `<a href="/category/${esc(category.slug)}" class="hover:text-primary">${esc(category.name)}</a> <span class="text-border">/</span> `
+      ? `<a href="/category/${esc(category.slug)}" class="hover:text-primary">${esc(category.name)}</a><span class="text-border mx-1.5">/</span>`
       : "") +
-    `<span class="text-foreground">${esc(post.title)}</span></nav>`;
+    `<span class="text-foreground line-clamp-1">${esc(post.title)}</span></nav>`;
+
+  const meta =
+    `<div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-5 text-[11px]">` +
+    (category
+      ? `<span class="inline-flex items-center gap-1.5 font-medium uppercase tracking-wider text-primary">${esc(category.name)}</span>` +
+        `<span class="text-border">·</span>`
+      : "") +
+    `<time datetime="${esc(post.created_at)}" class="uppercase tracking-wider text-muted-foreground">${esc(formatDate(post.created_at))}</time>` +
+    `<span class="text-border">·</span>` +
+    `<span class="uppercase tracking-wider text-muted-foreground">${readingTime(post.content)} min read</span>` +
+    `</div>`;
+
+  const excerpt = post.excerpt
+    ? `<p class="mt-5 text-lg md:text-xl leading-relaxed text-muted-foreground text-pretty">${esc(post.excerpt)}</p>`
+    : "";
 
   const cover = post.cover_image
     ? `<img src="${esc(post.cover_image)}" alt="${esc(post.title)}" width="1200" height="675"` +
-      ` class="w-full rounded-xl mb-8 aspect-video object-cover border border-border" fetchpriority="high"/>`
+      ` class="w-full rounded-xl mt-9 aspect-video object-cover border border-border" fetchpriority="high"/>`
     : "";
 
   return shell(
-    `<article class="max-w-3xl mx-auto">` +
+    `<article class="max-w-[46rem] mx-auto">` +
       crumbs +
+      meta +
+      `<h1 class="font-display text-[2rem] md:text-[2.75rem] font-bold text-foreground leading-[1.12] tracking-[-0.025em] text-balance">${esc(post.title)}</h1>` +
+      excerpt +
       cover +
-      `<h1 class="font-display text-3xl md:text-4xl font-bold text-foreground mb-8 leading-tight">${esc(post.title)}</h1>` +
-      renderDisclosure() +
+      `<div class="mt-9">${renderDisclosure()}</div>` +
       renderContent(post.content) +
       `</article>`
   );

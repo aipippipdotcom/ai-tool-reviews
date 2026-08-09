@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import { Navigate, Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
-import { Pencil, Trash2, Eye, Users } from "lucide-react";
+import { Pencil, Trash2, Eye, Users, Sparkles } from "lucide-react";
+import AiReviewGenerator from "@/components/admin/AiReviewGenerator";
 
 const generateSlug = (title: string) =>
   title
@@ -232,6 +233,10 @@ const AdminPage = () => {
               <Pencil className="h-3.5 w-3.5 mr-1.5" />
               {editingPost ? "Edit Post" : "New Post"}
             </TabsTrigger>
+            <TabsTrigger value="ai" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              AI Writer
+            </TabsTrigger>
             <TabsTrigger value="posts" className="data-[state=active]:bg-card data-[state=active]:text-foreground">
               <Eye className="h-3.5 w-3.5 mr-1.5" />
               Posts ({posts?.length ?? 0})
@@ -241,6 +246,27 @@ const AdminPage = () => {
               Subscribers ({subscribers?.length ?? 0})
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="ai" className="mt-8">
+            <AiReviewGenerator
+              categories={categories ?? []}
+              onApply={(review) => {
+                // Land on a fresh unsaved post rather than overwriting whatever
+                // was open in the editor.
+                setEditingPost(null);
+                setTitle(review.title);
+                setSlug(review.slug);
+                setExcerpt(review.excerpt);
+                setContent(review.content);
+                setMetaTitle(review.metaTitle);
+                setMetaDescription(review.metaDescription);
+                setMetaKeywords(review.metaKeywords);
+                setCoverImage("");
+                setPublished(false);
+                setActiveTab("editor");
+              }}
+            />
+          </TabsContent>
 
           <TabsContent value="editor" className="mt-8">
             <form
