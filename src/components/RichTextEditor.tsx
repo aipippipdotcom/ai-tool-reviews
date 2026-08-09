@@ -9,6 +9,7 @@ import Table from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
+import ShortcodeHighlight from "@/components/editor/shortcodeHighlight";
 import { toast } from "sonner";
 import {
   Bold,
@@ -171,6 +172,9 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       TableRow,
       TableHeader,
       TableCell,
+      // Presentational only: makes a shortcode paragraph read as a configured
+      // block instead of broken text, without changing what is saved.
+      ShortcodeHighlight,
     ],
     content,
     onUpdate: ({ editor }) => {
