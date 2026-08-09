@@ -4,7 +4,6 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import fs from "fs";
 
-// Plugin tự động tạo api/index-html.js sau khi build xong
 function injectIndexHtmlPlugin() {
   return {
     name: "inject-index-html",
@@ -31,5 +30,48 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
+  },
+  build: {
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // Supabase
+          'vendor-supabase': ['@supabase/supabase-js'],
+          // TanStack Query
+          'vendor-query': ['@tanstack/react-query'],
+          // Tiptap editor (chỉ load ở AdminPage)
+          'vendor-tiptap': [
+            '@tiptap/react',
+            '@tiptap/starter-kit',
+            '@tiptap/extension-image',
+            '@tiptap/extension-link',
+            '@tiptap/extension-placeholder',
+            '@tiptap/extension-text-align',
+            '@tiptap/extension-underline',
+          ],
+          // Radix UI
+          'vendor-radix': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-tooltip',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-label',
+            '@radix-ui/react-separator',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-switch',
+          ],
+          // Utilities
+          'vendor-utils': ['date-fns', 'clsx', 'class-variance-authority', 'react-hook-form', '@hookform/resolvers'],
+        },
+      },
+    },
   },
 }));

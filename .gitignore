@@ -32,3 +32,6 @@ venv/
   
    
     
+
+# Helper file generated for filling in [verdict] shortcodes
+verdict-shortcodes.txt
