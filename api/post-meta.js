@@ -1,5 +1,6 @@
 import { indexHtml } from './index-html.js'
 import { tokenize } from './_shortcodes.js'
+import { sb } from './_supabase.js'
 import {
   esc,
   renderPostBody,
