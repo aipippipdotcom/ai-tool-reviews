@@ -379,8 +379,17 @@ export default async function handler(req, res) {
 
   try {
     resolved = await resolve(urlPath)
-  } catch {
-    resolved = null
+  } catch (err) {
+    // A thrown resolve() means a bug or an unreachable database, not a missing
+    // page. Serving 404 for it made a site-wide outage look like ordinary
+    // not-found traffic, with nothing in the logs. Fail loudly instead: 503
+    // tells crawlers to come back rather than to drop the URL.
+    console.error('resolve failed', urlPath, err)
+    return res
+      .status(503)
+      .setHeader('content-type', 'text/plain; charset=utf-8')
+      .setHeader('cache-control', 'no-store')
+      .send(`Temporarily unavailable: ${err?.message || 'unknown error'}`)
   }
 
   // Unknown slug → a real 404. Previously this fell through to default meta
