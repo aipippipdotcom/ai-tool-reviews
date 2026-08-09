@@ -37,6 +37,7 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
   const [notes, setNotes] = useState("");
 
   const [raw, setRaw] = useState("");
+  const [error, setError] = useState("");
   const [running, setRunning] = useState(false);
   const [research, setResearch] = useState<{ ok: boolean; note: string } | null>(null);
   const [minWords, setMinWords] = useState(2000);
@@ -69,6 +70,7 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
     }
 
     setRaw("");
+    setError("");
     setResearch(null);
     setRunning(true);
 
@@ -118,7 +120,11 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
       toast.success("Draft ready — review it before applying.");
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
-        toast.error((err as Error).message || "Generation failed.");
+        // Kept on screen rather than only in a toast: these messages name the
+        // actual fault and are the whole diagnosis when generation fails.
+        const message = (err as Error).message || "Generation failed.";
+        setError(message);
+        toast.error("Generation failed — details below.");
       }
     } finally {
       setRunning(false);
@@ -247,6 +253,20 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
           )}
         </div>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+          <div className="flex items-start gap-2.5 text-sm text-destructive">
+            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <p className="font-medium">Generation failed</p>
+              <p className="mt-1 break-words font-mono text-xs leading-relaxed opacity-90">
+                {error}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {research && (
         <div

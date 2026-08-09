@@ -156,8 +156,25 @@ export default async function handler(request) {
 
   if (!upstream.ok || !upstream.body) {
     const detail = await upstream.text().catch(() => '')
+
+    // Surface DeepSeek's own wording: its 400s and 402s name the actual
+    // problem (bad parameter, empty balance, unknown model) and guessing from
+    // the status code alone wastes a round trip.
+    let message = detail
+    try {
+      const parsed = JSON.parse(detail)
+      message = parsed?.error?.message || parsed?.message || detail
+    } catch {
+      /* not JSON — the raw body is still the best clue */
+    }
+
     return json(
-      { error: `DeepSeek returned ${upstream.status}. ${detail.slice(0, 300)}` },
+      {
+        error: `DeepSeek rejected the request (HTTP ${upstream.status}): ${
+          message || '(empty response body)'
+        }`,
+        status: upstream.status,
+      },
       502
     )
   }
