@@ -15,11 +15,6 @@ const CATEGORY_PAGE_SIZE = 12
 
 const listSelect = 'id,title,slug,excerpt,cover_image,created_at'
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jcgcyrqsaodwaoryxcwy.supabase.co'
-const SUPABASE_KEY =
-  process.env.SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjZ2N5cnFzYW9kd2Fvcnl4Y3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NjIzMjEsImV4cCI6MjA4ODUzODMyMX0.eyL_WB5GR3g-sjj9PVkVN_r18j8p8QVSpjDJVMOUPJY'
-
 const BASE_URL = 'https://aipippip.net'
 const SITE_NAME = 'AIPipPip'
 const DEFAULT_TITLE = 'AIPipPip — Best AI Tools Reviews & Comparisons'
@@ -34,14 +29,6 @@ const PUBLISHER = {
   logo: { '@type': 'ImageObject', url: `${BASE_URL}/favicon.png` },
 }
 const AUTHOR = { '@type': 'Person', name: SITE_NAME, url: `${BASE_URL}/about` }
-
-async function sb(path) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: { apikey: SUPABASE_KEY },
-  })
-  if (!res.ok) return null
-  return res.json()
-}
 
 const getPost = (slug) =>
   sb(

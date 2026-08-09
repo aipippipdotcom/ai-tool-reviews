@@ -1,13 +1,9 @@
 import { fetchSalesPage, isTrackerUrl } from './_research.js'
 import { buildMessages, buildRoundupMessages, MIN_WORDS } from './_prompt.js'
 import { buildCandidates, formatCandidates } from './_roundup.js'
+import { sb, SUPABASE_URL, SUPABASE_ANON } from './_supabase.js'
 
 export const config = { runtime: 'edge' }
-
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://jcgcyrqsaodwaoryxcwy.supabase.co'
-const SUPABASE_ANON =
-  process.env.SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjZ2N5cnFzYW9kd2Fvcnl4Y3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NjIzMjEsImV4cCI6MjA4ODUzODMyMX0.eyL_WB5GR3g-sjj9PVkVN_r18j8p8QVSpjDJVMOUPJY'
 
 const DEEPSEEK_URL = 'https://api.deepseek.com/chat/completions'
 
