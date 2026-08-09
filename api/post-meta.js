@@ -117,9 +117,16 @@ function injectHead(html, meta) {
     <meta ${rh} property="og:description" content="${esc(meta.description)}"/>
     <meta ${rh} property="og:type" content="${esc(meta.type)}"/>
     <meta ${rh} property="og:url" content="${esc(meta.url)}"/>
-    <meta ${rh} property="og:image" content="${esc(meta.image)}"/>
+    <meta ${rh} property="og:image" content="${esc(meta.image)}"/>${
+      // Only the site's own card has known dimensions. Declaring 1200x630 for a
+      // cover of some other shape makes the scraper crop to a frame the image
+      // does not fill.
+      meta.image === DEFAULT_IMAGE
+        ? `
     <meta ${rh} property="og:image:width" content="1200"/>
-    <meta ${rh} property="og:image:height" content="630"/>
+    <meta ${rh} property="og:image:height" content="630"/>`
+        : ''
+    }
     <meta ${rh} property="og:site_name" content="${SITE_NAME}"/>
     <meta ${rh} name="twitter:card" content="summary_large_image"/>
     <meta ${rh} name="twitter:title" content="${esc(meta.title)}"/>

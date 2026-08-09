@@ -120,6 +120,32 @@ describe("post-meta handler", () => {
   });
 
   /**
+   * og-image.png was referenced by every page that has no cover of its own and
+   * had never existed in public/. Requesting it returned 200 because the SPA
+   * fallback answers any unknown path with HTML, so a status check looked fine
+   * while Facebook got markup where it wanted an image.
+   */
+  it("ships the default share image it advertises", async () => {
+    const { statSync } = await import("node:fs");
+    // import.meta.url is not a file: URL under the jsdom environment.
+    const stat = statSync("public/og-image.png");
+
+    expect(stat.size).toBeGreaterThan(5_000);
+  });
+
+  it("declares dimensions only for the image whose size is known", async () => {
+    stubSupabase();
+
+    const home = await get("/");
+    expect(home.body).toContain('property="og:image:width"');
+
+    // A post cover is whatever shape the author uploaded.
+    const post = await get("/post/tubeforge-review");
+    expect(post.body).toContain('property="og:image" content="https://img/x.png"');
+    expect(post.body).not.toContain('property="og:image:width"');
+  });
+
+  /**
    * The regression itself: a broken resolve() must not masquerade as a missing
    * page, or a site-wide outage looks like ordinary 404 traffic.
    */

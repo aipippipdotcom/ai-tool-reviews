@@ -53,8 +53,11 @@ const Seo = ({
       <meta property="og:type" content={type} />
       <meta property="og:url" content={url} />
       <meta property="og:image" content={image} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
+      {/* Only the site's own card has known dimensions. Declaring 1200x630 for
+          a cover of some other shape makes the scraper crop to a frame the
+          image does not fill. */}
+      {image === DEFAULT_IMAGE && <meta property="og:image:width" content="1200" />}
+      {image === DEFAULT_IMAGE && <meta property="og:image:height" content="630" />}
       <meta property="og:site_name" content={SITE_NAME} />
 
       <meta name="twitter:card" content="summary_large_image" />
