@@ -137,6 +137,11 @@ const AdminPage = () => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // Postgres answers an empty category_id with "invalid input syntax for
+      // type uuid", which tells the author nothing about what to fix.
+      if (!title.trim()) throw new Error("Give the post a title first.");
+      if (!categoryId) throw new Error("Pick a category before saving.");
+
       const postData = {
         title,
         slug: slug || generateSlug(title),
@@ -162,7 +167,8 @@ const AdminPage = () => {
     onSuccess: () => {
       toast.success(editingPost ? "Post updated!" : "Post created!");
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["posts-home"] });
+      queryClient.invalidateQueries({ queryKey: ["home-category-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["category-posts"] });
       resetForm();
     },
     onError: (err: Error) => {
@@ -261,6 +267,9 @@ const AdminPage = () => {
                 setMetaTitle(review.metaTitle);
                 setMetaDescription(review.metaDescription);
                 setMetaKeywords(review.metaKeywords);
+                // Carried over from the generator's own category picker, which
+                // was previously dropped and left the post unsaveable.
+                setCategoryId(review.categoryId);
                 setCoverImage("");
                 setPublished(false);
                 setActiveTab("editor");

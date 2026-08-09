@@ -21,6 +21,8 @@ export interface GeneratedReview {
   metaKeywords: string;
   excerpt: string;
   content: string;
+  /** The generator's own category choice, so the editor does not start empty. */
+  categoryId: string;
 }
 
 interface AiReviewGeneratorProps {
@@ -59,6 +61,11 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
   const generate = async () => {
     if (!productName.trim() || !affiliateUrl.trim()) {
       toast.error("Product name and affiliate URL are both required.");
+      return;
+    }
+    // Every post needs one to save, so ask now rather than after the writing.
+    if (!categoryId) {
+      toast.error("Pick a category first.");
       return;
     }
 
@@ -141,6 +148,7 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
       metaKeywords: draft.metaKeywords,
       excerpt: draft.excerpt,
       content: draft.content,
+      categoryId,
     });
     toast.success("Applied. Add your images, then save as a draft.");
   };
@@ -159,13 +167,13 @@ const AiReviewGenerator = ({ categories, onApply }: AiReviewGeneratorProps) => {
             />
           </div>
           <div>
-            <label className="text-sm font-medium mb-1.5 block">Category</label>
+            <label className="text-sm font-medium mb-1.5 block">Category *</label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
               className="w-full h-10 rounded-md border border-border bg-secondary px-3 text-sm"
             >
-              <option value="">— none —</option>
+              <option value="">— pick one —</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
