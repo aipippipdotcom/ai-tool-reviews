@@ -38,9 +38,13 @@ STRUCTURE — use <h3> for section headings (this site styles h3 as its section 
 9. Final Verdict — the recommendation, then the [cta] shortcode.
 
 FORMATTING — output HTML fragments only, no <html>/<body>/<head>:
-- <p>, <h3>, <h4>, <ul><li>, <ol><li>, <strong>, <em>, <blockquote>, <table>.
+- <p>, <h3>, <h4>, <ul><li>, <ol><li>, <strong>, <em>, <blockquote>.
 - Never emit <h1> or <h2>; the page supplies the h1.
 - Never emit <img>; the operator adds images afterwards.
+- Never emit <table>, <tr>, <td> or <th>. The editor has no table support and
+  silently flattens them into one run-on paragraph. For a cost or feature
+  comparison use a <ul> where each <li> starts with a bolded label, e.g.
+  <li><strong>Freelance video on Fiverr:</strong> $25-$75 per video</li>
 - Never emit style or class attributes.
 
 CONVERSION SHORTCODES — plain text on their own line, exactly these forms:

@@ -35,7 +35,20 @@ export function splitList(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
-export function tokenize(content: string): Token[] {
+/**
+ * The editor stores a shortcode as ordinary text, so Tiptap wraps it in a
+ * paragraph. Splitting on the shortcode would then strand the opening <p> in
+ * one fragment and its </p> in the next, leaving an empty paragraph and
+ * unbalanced markup. Lift standalone shortcodes out of their wrapper first.
+ */
+export function unwrapShortcodeParagraphs(content: string): string {
+  return String(content || "")
+    .replace(/<p[^>]*>\s*(\[(?:cta|verdict|proscons)\b[^\]]*\])\s*<\/p>/gi, "$1")
+    .replace(/<p[^>]*>\s*(\[(pros|cons)\][\s\S]*?\[\/\2\])\s*<\/p>/gi, "$1");
+}
+
+export function tokenize(rawContent: string): Token[] {
+  const content = unwrapShortcodeParagraphs(rawContent);
   const tokens: Token[] = [];
   const re = new RegExp(SHORTCODE_SOURCE, "gi");
   let last = 0;

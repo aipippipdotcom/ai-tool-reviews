@@ -143,6 +143,11 @@ export function reviewDraftIssues(draft: ReviewDraft, minWords: number): string[
   if (!/\[proscons/i.test(draft.content)) issues.push("No [proscons] block.");
   if (/<h[12]\b/i.test(draft.content)) issues.push("Body contains an h1 or h2; the page supplies those.");
   if (/<img\b/i.test(draft.content)) issues.push("Body contains an image; add those yourself.");
+  // Tiptap has no table extension, so a table is flattened into a run-on
+  // paragraph of concatenated cells rather than dropped visibly.
+  if (/<table\b/i.test(draft.content)) {
+    issues.push("Body contains a table; the editor will mangle it into run-on text.");
+  }
 
   return issues;
 }

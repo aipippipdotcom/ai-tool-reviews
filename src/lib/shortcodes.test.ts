@@ -33,6 +33,24 @@ describe("tokenize", () => {
     ]);
   });
 
+  // Tiptap stores a shortcode as text, so it arrives wrapped in a paragraph.
+  it("lifts a standalone shortcode out of its paragraph wrapper", () => {
+    const tokens = tokenize('<h3>Pros and Cons</h3><p>[proscons pros="A|B" cons="C"]</p><p>After.</p>');
+
+    expect(tokens).toEqual([
+      { type: "html", value: "<h3>Pros and Cons</h3>" },
+      { type: "proscons", attrs: { pros: "A|B", cons: "C" } },
+      { type: "html", value: "<p>After.</p>" },
+    ]);
+  });
+
+  it("leaves a shortcode that shares its paragraph with prose", () => {
+    const tokens = tokenize('<p>Buy here [cta url="https://x.com"] today</p>');
+
+    expect(tokens[0]).toEqual({ type: "html", value: "<p>Buy here " });
+    expect(tokens[1]).toEqual({ type: "cta", attrs: { url: "https://x.com" } });
+  });
+
   it("is not confused by square brackets in prose", () => {
     const tokens = tokenize("<p>see [1] and [note]</p>");
     expect(tokens).toEqual([{ type: "html", value: "<p>see [1] and [note]</p>" }]);
