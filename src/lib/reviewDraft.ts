@@ -101,6 +101,61 @@ export function sanitizeGenerated(text: string): string {
     .replace(/\s+,/g, ",");
 }
 
+/**
+ * Models reach for Markdown even when told to emit HTML, and a Markdown table
+ * dropped into an HTML body renders as a row of raw pipe characters. Converting
+ * is more reliable than asking again.
+ */
+export function markdownToHtml(text: string): string {
+  const stripP = (line: string) => line.replace(/<\/?p>/gi, "").trim();
+  const isRow = (line: string) => /^\|.*\|$/.test(stripP(line));
+  const isDivider = (line: string) =>
+    /^\|(?:\s*:?-{2,}:?\s*\|)+$/.test(stripP(line).replace(/\s+/g, " ").replace(/ \|/g, "|"));
+  const cells = (line: string) =>
+    stripP(line)
+      .replace(/^\||\|$/g, "")
+      .split("|")
+      .map((c) => c.trim());
+
+  const lines = String(text || "").split("\n");
+  const out: string[] = [];
+
+  for (let i = 0; i < lines.length; ) {
+    if (isRow(lines[i]) && isDivider(lines[i + 1] ?? "")) {
+      const header = cells(lines[i]);
+      i += 2;
+
+      const rows: string[][] = [];
+      while (i < lines.length && isRow(lines[i]) && !isDivider(lines[i])) {
+        rows.push(cells(lines[i]));
+        i++;
+      }
+
+      out.push(
+        "<table><thead><tr>" +
+          header.map((h) => `<th>${h}</th>`).join("") +
+          "</tr></thead><tbody>" +
+          rows.map((r) => "<tr>" + r.map((c) => `<td>${c}</td>`).join("") + "</tr>").join("") +
+          "</tbody></table>"
+      );
+      continue;
+    }
+
+    out.push(lines[i]);
+    i++;
+  }
+
+  return (
+    out
+      .join("\n")
+      // A shortcode is [name attrs] with no following bracket, so it cannot be
+      // mistaken for a Markdown link.
+      .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/(^|[^*])\*\*([^*\n]+)\*\*/g, "$1<strong>$2</strong>")
+      .replace(/^\s*#{2,4}\s+(.+)$/gm, "<h3>$1</h3>")
+  );
+}
+
 export function parseReviewDraft(raw: string): ReviewDraft {
   const draft: ReviewDraft = {
     title: "",
@@ -123,7 +178,7 @@ export function parseReviewDraft(raw: string): ReviewDraft {
 
   // No envelope at all: treat everything as body rather than losing the draft.
   if (metaAt === -1 && contentAt === -1) {
-    draft.content = text.trim();
+    draft.content = markdownToHtml(text.trim());
     return draft;
   }
 
@@ -143,7 +198,7 @@ export function parseReviewDraft(raw: string): ReviewDraft {
 
   if (contentAt !== -1) {
     draft.metaComplete = true;
-    draft.content = text.slice(contentAt + CONTENT_MARK.length).trim();
+    draft.content = markdownToHtml(text.slice(contentAt + CONTENT_MARK.length).trim());
   }
 
   if (!draft.slug && draft.title) draft.slug = slugify(draft.title);
@@ -171,8 +226,13 @@ export function reviewDraftIssues(draft: ReviewDraft, minWords: number): string[
   if (/<img\b/i.test(draft.content)) issues.push("Body contains an image; add those yourself.");
   // Tiptap has no table extension, so a table is flattened into a run-on
   // paragraph of concatenated cells rather than dropped visibly.
-  if (/<table\b/i.test(draft.content)) {
-    issues.push("Body contains a table; the editor will mangle it into run-on text.");
+  // Markdown that survived conversion renders as literal punctuation.
+  if (/^\s*\|.*\|\s*$/m.test(draft.content)) issues.push("Body has a Markdown table.");
+  if (/\*\*[^*\n]+\*\*/.test(draft.content)) issues.push("Body has Markdown bold.");
+
+  const inlineLinks = (draft.content.match(/<a\s[^>]*href=/gi) || []).length;
+  if (inlineLinks < 2) {
+    issues.push(`Only ${inlineLinks} inline link(s); two or three read as natural.`);
   }
 
   return issues;

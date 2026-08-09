@@ -76,6 +76,16 @@ STRUCTURE — use <h3> for section headings (this site styles h3 as its section 
 8. Frequently Asked Questions — 5 to 7 questions as <h4>, answers as <p>.
 9. Final Verdict — the recommendation, then the [cta] shortcode.
 
+NO MARKDOWN. The body is HTML and Markdown is not parsed, so any of it lands on
+the page as literal punctuation. This is the single most common way the output
+is ruined:
+- A table is <table><thead><tr><th>…</th></tr></thead><tbody><tr><td>…</td>
+  </tr></tbody></table>. Never pipes and dashes.
+- Bold is <strong>, never **stars**.
+- A heading is <h3>, never ## hashes.
+- A link is <a href="URL">text</a>, never [text](url).
+- A list is <ul><li>, never hyphens or asterisks at the start of a line.
+
 FORMATTING — output HTML fragments only, no <html>/<body>/<head>:
 - <p>, <h3>, <h4>, <ul><li>, <ol><li>, <strong>, <em>, <blockquote>.
 - Never emit <h1> or <h2>; the page supplies the h1.
@@ -104,11 +114,15 @@ Rules for every shortcode:
 - Give the two [cta] blocks different title, label and note text. Repeating the
   same button wording twice reads as a template.
 
-Beyond the three blocks, link the product name to the affiliate URL as an
-ordinary inline link two or three times across the article, where a reader
-would naturally want to check it: the first mention, the pricing discussion,
-and the FAQ. Use <a href="AFFILIATE_URL">the product name</a>. Do not link
-every mention.
+Beyond the three blocks, the article MUST contain two or three ordinary inline
+links to the affiliate URL, written as real anchors so they appear as underlined
+text in the prose:
+
+  <a href="AFFILIATE_URL">TubeForge</a>
+
+Put them where a reader would naturally want to check the page: the first
+mention of the product, the pricing discussion, and the FAQ. Do not link every
+mention, and never write a bare URL.
 - Set rating from your honest read of the evidence, one decimal, 3.5-4.8. Never 5.
 - Only include price="..." if a price appears in your sources. Otherwise omit the attribute entirely.
 

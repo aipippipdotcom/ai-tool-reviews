@@ -5,6 +5,7 @@ import {
   countWords,
   slugify,
   sanitizeGenerated,
+  markdownToHtml,
 } from "./reviewDraft";
 
 const FULL = `<<<META>>>
@@ -15,7 +16,8 @@ meta_description: An honest look at StoryCraft Kids after two weeks of bedtime s
 meta_keywords: storycraft kids, ai bedtime stories, plr prompts
 excerpt: I tested every prompt. Here is what held up.
 <<<CONTENT>>>
-<p>It was 9pm and I had no story left in me.</p>
+<p>It was 9pm and <a href="https://merchant.com/x">StoryCraft Kids</a> was open.</p>
+<p>The price on <a href="https://merchant.com/x">the sales page</a> was $17.</p>
 [verdict rating="4.3" title="StoryCraft Kids" url="https://merchant.com/x" price="$17"]
 <h3>Key Features</h3>
 [cta url="https://merchant.com/x" label="Try It Tonight"]
@@ -110,6 +112,43 @@ describe("sanitizeGenerated", () => {
 
     expect(draft.title).toBe("A, B");
     expect(draft.content).not.toMatch(/[–—]/);
+  });
+});
+
+describe("markdownToHtml", () => {
+  // The exact shape a draft produced instead of a <table>.
+  const MD_TABLE = [
+    "<p>Here is the table:</p>",
+    "| Option | Upfront Cost | Per-Video Cost |",
+    "| --- | --- | --- |",
+    "| Freelance video (Fiverr) | $25 to $75 each | $25 to $75 |",
+    "| TubeForge | $17 once | $0 |",
+  ].join("\n");
+
+  it("converts a Markdown table into real table markup", () => {
+    const html = markdownToHtml(MD_TABLE);
+
+    expect(html).toContain("<table><thead><tr><th>Option</th>");
+    expect(html).toContain("<td>TubeForge</td><td>$17 once</td><td>$0</td>");
+    expect(html).not.toContain("| ---");
+  });
+
+  it("keeps the prose around the table", () => {
+    expect(markdownToHtml(MD_TABLE)).toContain("<p>Here is the table:</p>");
+  });
+
+  it("converts Markdown links without touching shortcodes", () => {
+    const out = markdownToHtml(
+      '[TubeForge](https://m.com/x) and [cta url="https://m.com/x" label="Buy"]'
+    );
+
+    expect(out).toContain('<a href="https://m.com/x">TubeForge</a>');
+    expect(out).toContain('[cta url="https://m.com/x" label="Buy"]');
+  });
+
+  it("converts Markdown bold and headings", () => {
+    expect(markdownToHtml("**loud**")).toBe("<strong>loud</strong>");
+    expect(markdownToHtml("### Pricing")).toBe("<h3>Pricing</h3>");
   });
 });
 
