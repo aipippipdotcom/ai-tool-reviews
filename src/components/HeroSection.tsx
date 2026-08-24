@@ -24,7 +24,7 @@ interface HeroSectionProps {
  */
 const HeroSection = ({ categories }: HeroSectionProps) => (
   <section className="mb-14 md:mb-16 pt-2 md:pt-6">
-    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary mb-4">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary mb-4 text-balance">
       Independent reviews · No tool gets a free pass
     </p>
 

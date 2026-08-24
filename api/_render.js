@@ -359,11 +359,12 @@ export function renderHomeBody(sections) {
 
   const masthead =
     `<section class="mb-14 md:mb-16 pt-2 md:pt-6">` +
-    `<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary mb-4">Independent reviews · No tool gets a free pass</p>` +
+    `<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary mb-4 text-balance">Independent reviews · No tool gets a free pass</p>` +
     `<h1 class="font-display text-[2rem] md:text-5xl font-bold text-foreground leading-[1.1] tracking-[-0.02em] text-balance max-w-3xl">` +
     `Know what an AI tool really costs <span class="text-gradient">before you pay for it</span></h1>` +
     `<p class="mt-5 text-base md:text-lg leading-relaxed text-muted-foreground max-w-xl text-pretty">` +
     `Hands-on reviews of AI tools and digital products: real pricing, the limits the sales page skips, and who should walk away.</p>` +
+    `<div class="mt-8 max-w-xl"><div class="h-10 w-full rounded-md border border-border bg-secondary"></div></div>` +
     `<nav class="mt-7 flex flex-wrap gap-2">${chips}</nav>` +
     `</section>`;
 
