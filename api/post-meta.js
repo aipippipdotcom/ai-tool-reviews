@@ -3,6 +3,7 @@ import { tokenize } from './_shortcodes.js'
 import { sb } from './_supabase.js'
 import {
   esc,
+  categoryLabel,
   renderPostBody,
   renderHomeBody,
   renderCategoryBody,
@@ -212,7 +213,7 @@ async function resolve(urlPath) {
       breadcrumb([
         { name: 'Home', url: BASE_URL },
         ...(category
-          ? [{ name: category.name, url: `${BASE_URL}/category/${category.slug}` }]
+          ? [{ name: categoryLabel(category.name), url: `${BASE_URL}/category/${category.slug}` }]
           : []),
         { name: post.title, url },
       ])
@@ -244,12 +245,12 @@ async function resolve(urlPath) {
     const url = `${BASE_URL}/category/${cat.slug}`
     const description =
       cat.description ||
-      `Browse every ${cat.name} review on ${SITE_NAME} — hands-on testing, pricing breakdowns and honest verdicts.`
+      `Browse every ${categoryLabel(cat.name)} review on ${SITE_NAME} — hands-on testing, pricing breakdowns and honest verdicts.`
     const posts = await getCategoryPosts(cat.id, CATEGORY_PAGE_SIZE)
 
     return {
       meta: {
-        title: `${cat.name} — Reviews & Comparisons | ${SITE_NAME}`,
+        title: `${categoryLabel(cat.name)} — Reviews & Comparisons | ${SITE_NAME}`,
         description,
         image: DEFAULT_IMAGE,
         url,
@@ -260,13 +261,13 @@ async function resolve(urlPath) {
             {
               '@type': 'CollectionPage',
               url,
-              name: cat.name,
+              name: categoryLabel(cat.name),
               description,
               publisher: PUBLISHER,
             },
             breadcrumb([
               { name: 'Home', url: BASE_URL },
-              { name: cat.name, url },
+              { name: categoryLabel(cat.name), url },
             ]),
           ],
         }),

@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import PostCard from "@/components/PostCard";
 import Seo, { BASE_URL, SITE_NAME } from "@/components/Seo";
 import CategoryIcon from "@/components/CategoryIcon";
+import { categoryLabel } from "@/lib/format";
 
 /** Two full rows at the widest breakpoint, so the first screen is covered. */
 const PAGE_SIZE = 12;
@@ -67,19 +68,19 @@ const CategoryPage = () => {
   const url = `${BASE_URL}/category/${slug}`;
   const description =
     category?.description ||
-    `Browse every ${category?.name ?? ""} review on ${SITE_NAME} — hands-on testing, pricing breakdowns and honest verdicts.`;
+    `Browse every ${categoryLabel(category?.name)} review on ${SITE_NAME} — hands-on testing, pricing breakdowns and honest verdicts.`;
 
   return (
     <>
       <Seo
-        title={`${category?.name ?? "Category"} — Reviews & Comparisons | ${SITE_NAME}`}
+        title={`${categoryLabel(category?.name) || "Category"} — Reviews & Comparisons | ${SITE_NAME}`}
         description={description}
         canonical={url}
         schema={[
           {
             "@type": "CollectionPage",
             url,
-            name: category?.name ?? "Category",
+            name: categoryLabel(category?.name) || "Category",
             description,
           },
           {
@@ -89,7 +90,7 @@ const CategoryPage = () => {
               {
                 "@type": "ListItem",
                 position: 2,
-                name: category?.name ?? "Category",
+                name: categoryLabel(category?.name) || "Category",
                 item: url,
               },
             ],
@@ -102,7 +103,7 @@ const CategoryPage = () => {
           <div className="mb-10">
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
               {category?.icon && <CategoryIcon name={category.icon} className="h-8 w-8 text-primary" />}
-              {category?.name}
+              {categoryLabel(category?.name)}
             </h1>
             <p className="text-muted-foreground mt-2">
               Browse all reviews in this category
@@ -118,7 +119,7 @@ const CategoryPage = () => {
                     slug={post.slug}
                     excerpt={post.excerpt}
                     coverImage={post.cover_image}
-                    categoryName={category?.name ?? ""}
+                    categoryName=""
                     categorySlug={category?.slug ?? ""}
                     createdAt={post.created_at}
                   />

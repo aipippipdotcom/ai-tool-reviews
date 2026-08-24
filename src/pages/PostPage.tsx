@@ -13,6 +13,9 @@ import { extractVerdict, primaryOffer } from "@/lib/shortcodes";
 import { readingTime } from "@/lib/utils";
 import { format } from "date-fns";
 import CategoryIcon from "@/components/CategoryIcon";
+import { categoryLabel } from "@/lib/format";
+import { withHeadingIds } from "@/lib/toc";
+import ArticleAside from "@/components/article/ArticleAside";
 
 const AUTHOR = { "@type": "Person", name: SITE_NAME, url: `${BASE_URL}/about` };
 const PUBLISHER = {
@@ -109,6 +112,9 @@ const PostPage = () => {
   const description = post.meta_description || post.excerpt || "";
   const verdict = extractVerdict(post.content);
   const offer = primaryOffer(post.content);
+  // Ids are assigned once over the whole document so the sidebar links and the
+  // rendered headings cannot drift apart.
+  const { html: contentHtml, headings } = withHeadingIds(post.content);
 
   const schema: object[] = [
     {
@@ -172,7 +178,7 @@ const PostPage = () => {
             {
               "@type": "ListItem",
               position: 2,
-              name: category.name,
+              name: categoryLabel(category.name),
               item: `${BASE_URL}/category/${category.slug}`,
             },
           ]
@@ -199,31 +205,32 @@ const PostPage = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-10">
-          <article className="max-w-[46rem] mx-auto">
-            <nav className="mb-7 text-sm text-muted-foreground" aria-label="Breadcrumb">
-              <Link to="/" className="hover:text-primary transition-colors">
+          <div className="mx-auto grid max-w-[46rem] gap-12 xl:max-w-[72rem] xl:grid-cols-[minmax(0,46rem)_19rem]">
+          <article>
+            <nav className="mb-7 flex items-center gap-1.5 text-sm text-muted-foreground" aria-label="Breadcrumb">
+              <Link to="/" className="shrink-0 hover:text-primary transition-colors">
                 Home
               </Link>
-              <span className="text-border mx-1.5">/</span>
+              <span className="text-border">/</span>
               {category && (
                 <>
                   <Link
                     to={`/category/${category.slug}`}
-                    className="hover:text-primary transition-colors"
+                    className="shrink-0 hover:text-primary transition-colors"
                   >
-                    {category.name}
+                    {categoryLabel(category.name)}
                   </Link>
-                  <span className="text-border mx-1.5">/</span>
+                  <span className="text-border">/</span>
                 </>
               )}
-              <span className="text-foreground line-clamp-1">{post.title}</span>
+              <span className="min-w-0 truncate text-foreground">{post.title}</span>
             </nav>
 
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-5 text-[11px]">
               {category && (
                 <span className="inline-flex items-center gap-1.5 font-medium uppercase tracking-wider text-primary">
                   <CategoryIcon name={category.icon} className="h-3.5 w-3.5" />
-                  {category.name}
+                  {categoryLabel(category.name)}
                 </span>
               )}
               <span className="text-border">·</span>
@@ -268,7 +275,7 @@ const PostPage = () => {
               <AffiliateDisclosure />
             </div>
 
-            <PostContent content={post.content} postSlug={slug} />
+            <PostContent content={contentHtml} postSlug={slug} />
 
             {category && (
               <RelatedPosts
@@ -281,6 +288,14 @@ const PostPage = () => {
 
             <CommentsSection postId={post.id} />
           </article>
+
+          <ArticleAside
+            offer={offer}
+            rating={verdict?.rating ?? null}
+            headings={headings}
+            postSlug={slug}
+          />
+          </div>
         </main>
         <Footer />
       </div>

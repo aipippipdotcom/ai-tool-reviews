@@ -6,7 +6,42 @@
 // Tailwind's content scan. Affiliate-block styling uses the hand-authored
 // .aff-* classes in src/index.css for the same reason.
 
-import { tokenize, rewriteExternalLinks } from "./_shortcodes.js";
+import { tokenize, rewriteExternalLinks, primaryOffer } from "./_shortcodes.js";
+
+/** Mirrors src/lib/toc.ts. */
+function plainText(html) {
+  return String(html || "").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, " ").trim();
+}
+
+export function headingId(text) {
+  return plainText(text).toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim()
+    .replace(/\s+/g, "-").slice(0, 60) || "section";
+}
+
+export function withHeadingIds(html) {
+  const headings = [];
+  const seen = new Map();
+  const out = String(html || "").replace(/<h3\b([^>]*)>([\s\S]*?)<\/h3>/gi, (m, attrs, inner) => {
+    const text = plainText(inner);
+    if (!text) return m;
+    const base = headingId(text);
+    const n = (seen.get(base) ?? 0) + 1;
+    seen.set(base, n);
+    const id = n === 1 ? base : `${base}-${n}`;
+    headings.push({ id, text });
+    return `<h3 id="${id}"${attrs.replace(/\s*\bid="[^"]*"/gi, "")}>${inner}</h3>`;
+  });
+  return { html: out, headings };
+}
+
+/**
+ * Mirrors categoryLabel in src/lib/format.ts. Category rows carry a "Review "
+ * prefix from how they were entered, which does not belong in a heading.
+ */
+export function categoryLabel(name) {
+  return String(name || '').replace(/^\s*Review\s+/i, '').trim();
+}
 
 export function esc(str) {
   return String(str == null ? "" : str)
@@ -195,20 +230,60 @@ function formatDate(iso) {
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 }
 
+
+/** Mirrors src/components/article/ArticleAside.tsx. */
+function renderAside(offer, rating, headings) {
+  if (!offer && headings.length < 3) return `<aside class="hidden xl:block"></aside>`;
+
+  const verdict = offer
+    ? `<div class="rounded-xl border border-primary/25 bg-card p-5">` +
+      `<p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">The verdict</p>` +
+      (offer.title
+        ? `<p class="mt-2 font-display text-base font-bold leading-snug text-foreground">${esc(offer.title)}</p>`
+        : "") +
+      (rating ? `<div class="mt-2.5">${ratingBlock(rating)}</div>` : "") +
+      (offer.price
+        ? `<p class="mt-3 font-display text-2xl font-bold text-foreground">${esc(offer.price)}</p>`
+        : "") +
+      `<div class="mt-4">` +
+      `<a class="aff-btn aff-btn--block" href="${esc(offer.url)}" target="_blank"` +
+      ` rel="sponsored nofollow noopener noreferrer" data-aff-link="aside">` +
+      `${esc(offer.label)} <span aria-hidden="true">&rarr;</span></a></div></div>`
+    : "";
+
+  const toc =
+    headings.length >= 3
+      ? `<nav class="rounded-xl border border-border bg-card p-5">` +
+        `<p class="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">On this page</p>` +
+        `<ul class="mt-3 space-y-2">` +
+        headings
+          .map(
+            (h) =>
+              `<li><a href="#${esc(h.id)}" class="block text-[13px] leading-snug text-muted-foreground">${esc(
+                h.text
+              )}</a></li>`
+          )
+          .join("") +
+        `</ul></nav>`
+      : "";
+
+  return `<aside class="hidden xl:block"><div class="sticky top-24 space-y-5">${verdict}${toc}</div></aside>`;
+}
+
 // Layout mirrors src/pages/PostPage.tsx so the React takeover is invisible.
 export function renderPostBody(post, category) {
   const crumbs =
-    `<nav class="mb-7 text-sm text-muted-foreground">` +
-    `<a href="/" class="hover:text-primary">Home</a><span class="text-border mx-1.5">/</span>` +
+    `<nav class="mb-7 flex items-center gap-1.5 text-sm text-muted-foreground">` +
+    `<a href="/" class="shrink-0 hover:text-primary">Home</a><span class="text-border">/</span>` +
     (category
-      ? `<a href="/category/${esc(category.slug)}" class="hover:text-primary">${esc(category.name)}</a><span class="text-border mx-1.5">/</span>`
+      ? `<a href="/category/${esc(category.slug)}" class="hover:text-primary">${esc(categoryLabel(category.name))}</a><span class="text-border">/</span>`
       : "") +
-    `<span class="text-foreground line-clamp-1">${esc(post.title)}</span></nav>`;
+    `<span class="min-w-0 truncate text-foreground">${esc(post.title)}</span></nav>`;
 
   const meta =
     `<div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mb-5 text-[11px]">` +
     (category
-      ? `<span class="inline-flex items-center gap-1.5 font-medium uppercase tracking-wider text-primary">${esc(category.name)}</span>` +
+      ? `<span class="inline-flex items-center gap-1.5 font-medium uppercase tracking-wider text-primary">${esc(categoryLabel(category.name))}</span>` +
         `<span class="text-border">·</span>`
       : "") +
     `<time datetime="${esc(post.created_at)}" class="uppercase tracking-wider text-muted-foreground">${esc(formatDate(post.created_at))}</time>` +
@@ -226,23 +301,30 @@ export function renderPostBody(post, category) {
       ` class="w-full h-auto rounded-xl mt-9 border border-border" fetchpriority="high"/>`
     : "";
 
+  const { html: contentHtml, headings } = withHeadingIds(post.content);
+  const offer = primaryOffer(post.content);
+  const rating = offer?.rating || "";
+
   return shell(
-    `<article class="max-w-[46rem] mx-auto">` +
+    `<div class="mx-auto grid max-w-[46rem] gap-12 xl:max-w-[72rem] xl:grid-cols-[minmax(0,46rem)_19rem]">` +
+    `<article>` +
       crumbs +
       meta +
       `<h1 class="font-display text-[2rem] md:text-[2.75rem] font-bold text-foreground leading-[1.12] tracking-[-0.025em] text-balance">${esc(post.title)}</h1>` +
       excerpt +
       cover +
       `<div class="mt-9">${renderDisclosure()}</div>` +
-      renderContent(post.content) +
-      `</article>`
+      renderContent(contentHtml) +
+      `</article>` +
+      renderAside(offer, rating, headings) +
+      `</div>`
   );
 }
 
 function postCard(post, categoryName) {
   return (
     `<a href="/post/${esc(post.slug)}" class="group block rounded-xl border border-border bg-card overflow-hidden">` +
-    `<div class="aspect-[16/10] bg-secondary overflow-hidden">` +
+    `<div class="relative aspect-[16/10] overflow-hidden bg-secondary after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-1/3 after:bg-gradient-to-t after:from-card after:to-transparent">` +
     (post.cover_image
       ? `<img src="${esc(post.cover_image)}" alt="${esc(post.title)}" loading="lazy" class="w-full h-full object-cover"/>`
       : "") +
@@ -266,14 +348,24 @@ const CARD_GRID = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5";
  * previously only reachable by running the app.
  */
 export function renderHomeBody(sections) {
-  const hero =
-    `<section class="relative overflow-hidden rounded-2xl border border-border bg-card mb-16">` +
-    `<div class="relative px-8 py-16 md:px-16 md:py-24">` +
-    `<h1 class="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.1] mb-5">` +
-    `Find the best <span class="text-gradient">AI tools</span> for your workflow</h1>` +
-    `<p class="text-muted-foreground text-lg md:text-xl leading-relaxed max-w-lg">` +
-    `In-depth reviews, side-by-side comparisons, and expert insights on the top digital products and AI tools.` +
-    `</p></div></section>`;
+  const chips = sections
+    .map(
+      (s) =>
+        `<a href="/category/${esc(s.slug)}" class="rounded-full border border-border bg-card px-3.5 py-1.5 text-[13px] font-medium text-muted-foreground">${esc(
+          categoryLabel(s.name)
+        )}</a>`
+    )
+    .join("");
+
+  const masthead =
+    `<section class="mb-14 md:mb-16 pt-2 md:pt-6">` +
+    `<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary mb-4">Independent reviews · No tool gets a free pass</p>` +
+    `<h1 class="font-display text-[2rem] md:text-5xl font-bold text-foreground leading-[1.1] tracking-[-0.02em] text-balance max-w-3xl">` +
+    `Know what an AI tool really costs <span class="text-gradient">before you pay for it</span></h1>` +
+    `<p class="mt-5 text-base md:text-lg leading-relaxed text-muted-foreground max-w-xl text-pretty">` +
+    `Hands-on reviews of AI tools and digital products: real pricing, the limits the sales page skips, and who should walk away.</p>` +
+    `<nav class="mt-7 flex flex-wrap gap-2">${chips}</nav>` +
+    `</section>`;
 
   const body = sections
     .filter((s) => s.posts.length)
@@ -281,27 +373,27 @@ export function renderHomeBody(sections) {
       (s) =>
         `<section class="mb-16">` +
         `<div class="flex items-center justify-between mb-8">` +
-        `<h2 class="font-display text-xl md:text-2xl font-bold text-foreground">${esc(s.name)}</h2>` +
+        `<h2 class="font-display text-xl md:text-2xl font-bold text-foreground">${esc(categoryLabel(s.name))}</h2>` +
         `<a href="/category/${esc(s.slug)}" class="text-sm font-medium text-primary">View all</a>` +
         `</div>` +
-        `<div class="${CARD_GRID}">${s.posts.map((p) => postCard(p, s.name)).join("")}</div>` +
+        `<div class="${CARD_GRID}">${s.posts.map((p) => postCard(p, "")).join("")}</div>` +
         `</section>`
     )
     .join("");
 
-  return shell(hero + body);
+  return shell(masthead + body);
 }
 
 /** Category listing body. Mirrors src/pages/CategoryPage.tsx. */
 export function renderCategoryBody(category, description, posts) {
   const head =
     `<div class="mb-10">` +
-    `<h1 class="font-display text-3xl md:text-4xl font-bold text-foreground">${esc(category.name)}</h1>` +
+    `<h1 class="font-display text-3xl md:text-4xl font-bold text-foreground">${esc(categoryLabel(category.name))}</h1>` +
     `<p class="text-muted-foreground mt-2">${esc(description)}</p></div>`;
 
   const grid = posts.length
     ? `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">` +
-      posts.map((p) => postCard(p, category.name)).join("") +
+      posts.map((p) => postCard(p, "")).join("") +
       `</div>`
     : `<div class="text-center py-20 rounded-xl border border-border bg-card">` +
       `<p class="text-muted-foreground">No posts in this category yet.</p></div>`;

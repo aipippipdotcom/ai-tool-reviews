@@ -4,7 +4,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/HeroSection";
 import CategorySection, { POSTS_PER_CATEGORY } from "@/components/CategorySection";
-import SearchBar from "@/components/SearchBar";
 import EmailSubscribe from "@/components/EmailSubscribe";
 import Seo, { BASE_URL, SITE_NAME } from "@/components/Seo";
 
@@ -82,10 +81,7 @@ const Index = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-10">
-          <HeroSection />
-          <div className="my-8">
-            <SearchBar />
-          </div>
+          <HeroSection categories={categories ?? []} />
           {(categories ?? []).map((cat, i) => (
             <CategorySection
               key={cat.id}

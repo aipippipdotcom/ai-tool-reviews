@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { categoryLabel } from "@/lib/format";
 
 interface PostCardProps {
   title: string;
@@ -25,7 +26,10 @@ const PostCard = ({
       to={`/post/${slug}`}
       className="group block rounded-xl border border-border bg-card overflow-hidden hover:border-primary/30 transition-all duration-300 hover:glow"
     >
-      <div className="aspect-[16/10] bg-secondary overflow-hidden">
+      {/* Covers come from many vendors: white mockups, dark screenshots, red
+          thumbnails. A soft fade at the lower edge settles them into the card
+          instead of leaving each one shouting its own background. */}
+      <div className="relative aspect-[16/10] overflow-hidden bg-secondary after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-1/3 after:bg-gradient-to-t after:from-card after:to-transparent">
         {coverImage ? (
           <img
             src={coverImage}
@@ -43,10 +47,14 @@ const PostCard = ({
       </div>
       <div className="p-5">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-[11px] font-medium uppercase tracking-wider text-primary">
-            {categoryName}
-          </span>
-          <span className="text-border">·</span>
+          {categoryName && (
+            <>
+              <span className="text-[11px] font-medium uppercase tracking-wider text-primary">
+                {categoryLabel(categoryName)}
+              </span>
+              <span className="text-border">·</span>
+            </>
+          )}
           <span className="text-[11px] text-muted-foreground">
             {format(new Date(createdAt), "MMM d, yyyy")}
           </span>

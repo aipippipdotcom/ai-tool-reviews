@@ -110,5 +110,30 @@ export function rewriteExternalLinks(html) {
   });
 }
 
-// The sticky CTA is client-only, so offer selection lives solely in
-// src/lib/shortcodes.ts — nothing server-side needs it.
+/**
+ * The offer a review is selling: an explicit shortcode, else its most-linked
+ * outbound URL. Mirrors primaryOffer in src/lib/shortcodes.ts.
+ */
+export function primaryOffer(content) {
+  for (const t of tokenize(content || "")) {
+    if ((t.type === "verdict" || t.type === "cta") && t.attrs.url) {
+      return {
+        url: t.attrs.url,
+        label: t.attrs.label || "Get It Now",
+        price: t.attrs.price || "",
+        title: t.attrs.title || "",
+        rating: t.attrs.rating || "",
+      };
+    }
+  }
+
+  const counts = new Map();
+  for (const m of String(content || "").matchAll(/<a\b[^>]*href="(https?:\/\/[^"]+)"/gi)) {
+    if (!isExternalHref(m[1])) continue;
+    counts.set(m[1], (counts.get(m[1]) ?? 0) + 1);
+  }
+  if (!counts.size) return null;
+
+  const [url] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+  return { url, label: "Get It Now", price: "", title: "", rating: "" };
+}

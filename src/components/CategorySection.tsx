@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import PostCard from "./PostCard";
 import CategoryIcon from "./CategoryIcon";
+import { categoryLabel } from "@/lib/format";
 
 interface Post {
   id: string;
@@ -33,7 +34,7 @@ const CategorySection = ({ name, slug, icon, posts }: CategorySectionProps) => {
       <div className="flex items-center justify-between mb-8">
         <h2 className="font-display text-xl md:text-2xl font-bold text-foreground flex items-center gap-2.5">
           <CategoryIcon name={icon} className="h-5 w-5 text-primary" />
-          {name}
+          {categoryLabel(name)}
         </h2>
         <Link
           to={`/category/${slug}`}
@@ -51,7 +52,7 @@ const CategorySection = ({ name, slug, icon, posts }: CategorySectionProps) => {
             slug={post.slug}
             excerpt={post.excerpt}
             coverImage={post.cover_image}
-            categoryName={name}
+            categoryName=""
             categorySlug={slug}
             createdAt={post.created_at}
           />

@@ -790,7 +790,9 @@
     font-size: 0.9375rem;
   }
 
-  @media (min-width: 1024px) {
+  /* Hidden only where the sidebar takes over, at xl. Hiding it at lg left
+     1024-1279px with neither a sticky bar nor an aside. */
+  @media (min-width: 1280px) {
     .aff-sticky {
       display: none;
     }
