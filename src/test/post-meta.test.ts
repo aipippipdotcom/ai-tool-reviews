@@ -97,6 +97,59 @@ describe("post-meta handler", () => {
     expect(res.body).toContain('href="/post/tubeforge-review"');
   });
 
+  /**
+   * Only the first 12 posts of a category used to be linked anywhere a crawler
+   * could follow: later ones sat behind a "Load more" button.
+   */
+  it("pages a category with real links, and 404s past the last page", async () => {
+    const many = Array.from({ length: 30 }, (_, i) => ({ ...POST, id: `p${i}`, slug: `post-${i}` }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes("/categories")) return new Response(JSON.stringify([CATEGORY]));
+        const offset = Number(url.match(/offset=(\d+)/)?.[1] ?? 0);
+        const limit = Number(url.match(/limit=(\d+)/)?.[1] ?? many.length);
+        return new Response(JSON.stringify(many.slice(offset, offset + limit)));
+      })
+    );
+
+    const first = await get("/category/ebook-plr");
+    expect(first.body).toContain('href="/category/ebook-plr/page/2"');
+    expect(first.body).toContain('href="/category/ebook-plr/page/3"');
+
+    const second = await get("/category/ebook-plr/page/2");
+    expect(second.statusCode).toBe(200);
+    expect(second.body).toContain('rel="canonical" href="https://aipippip.net/category/ebook-plr/page/2"');
+    expect(second.body).toContain('href="/post/post-12"');
+    expect(second.body).toContain("Page 2 of 3");
+
+    expect((await get("/category/ebook-plr/page/4")).statusCode).toBe(404);
+
+    const one = await get("/category/ebook-plr/page/1");
+    expect(one.statusCode).toBe(301);
+    expect(one.headers.Location).toBe("/category/ebook-plr");
+  });
+
+  it("renders related posts into the article HTML", async () => {
+    const other = { ...POST, id: "p2", slug: "other-review", title: "Other Review" };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.includes("/categories")) return new Response(JSON.stringify([CATEGORY]));
+        if (url.includes("id=neq.")) return new Response(JSON.stringify([other]));
+        return new Response(JSON.stringify([POST]));
+      })
+    );
+
+    const res = await get("/post/tubeforge-review");
+    // The preload script sits in <head>; check the rendered body, not the JSON.
+    const html = res.body.split("</head>")[1];
+    expect(html).toContain("Related Posts");
+    expect(html).toContain('href="/post/other-review"');
+  });
+
   it("404s an unknown slug, and marks it noindex", async () => {
     stubSupabase({ posts: [] });
     const res = await get("/post/does-not-exist");

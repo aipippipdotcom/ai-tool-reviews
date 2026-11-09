@@ -1,27 +1,51 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PostCard from "@/components/PostCard";
+import { pickNeighbours, RELATED_COUNT } from "../../api/_related.js";
 
 interface RelatedPostsProps {
   currentPostId: string;
+  currentCreatedAt: string;
   categoryId: string;
   categoryName: string;
   categorySlug: string;
 }
 
-const RelatedPosts = ({ currentPostId, categoryId, categoryName, categorySlug }: RelatedPostsProps) => {
+const SELECT = "id, title, slug, excerpt, cover_image, category_id, created_at";
+
+/** The server already picked these for the rendered HTML; reuse them. */
+function preloadedRelated(postId: string) {
+  const data = window.__PRELOAD__;
+  return (data?.post as { id?: string } | undefined)?.id === postId ? data?.related : undefined;
+}
+
+const RelatedPosts = ({
+  currentPostId,
+  currentCreatedAt,
+  categoryId,
+  categoryName,
+  categorySlug,
+}: RelatedPostsProps) => {
   const { data: posts } = useQuery({
     queryKey: ["related-posts", currentPostId, categoryId],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    initialData: preloadedRelated(currentPostId) as any[] | undefined,
+    // Neighbours by date, not the newest few — see api/_related.js.
     queryFn: async () => {
-      const { data } = await supabase
-        .from("posts")
-        .select("id, title, slug, excerpt, cover_image, category_id, created_at")
-        .eq("published", true)
-        .eq("category_id", categoryId)
-        .neq("id", currentPostId)
-        .order("created_at", { ascending: false })
-        .limit(5);
-      return (data ?? []) as any[];
+      const base = () =>
+        supabase
+          .from("posts")
+          .select(SELECT)
+          .eq("published", true)
+          .eq("category_id", categoryId)
+          .neq("id", currentPostId)
+          .limit(RELATED_COUNT);
+      const [newer, older] = await Promise.all([
+        base().gt("created_at", currentCreatedAt).order("created_at", { ascending: true }),
+        base().lt("created_at", currentCreatedAt).order("created_at", { ascending: false }),
+      ]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return pickNeighbours(newer.data ?? [], older.data ?? []) as any[];
     },
   });
 

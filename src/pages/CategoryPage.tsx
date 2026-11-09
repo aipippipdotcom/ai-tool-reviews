@@ -1,7 +1,6 @@
-import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -23,8 +22,56 @@ const preloaded = (slug?: string) => {
   return (data?.category as { slug?: string } | undefined)?.slug === slug ? data : undefined;
 };
 
+/** Mirrors categoryPageHref in api/_render.js. */
+const pageHref = (slug: string, page: number) =>
+  page > 1 ? `/category/${slug}/page/${page}` : `/category/${slug}`;
+
+/**
+ * Real links, not a "Load more" button: a crawler never clicks, so the button
+ * left every post past the first 12 of a category linked from nowhere.
+ * Mirrors renderPagination in api/_render.js.
+ */
+function CategoryPagination({ slug, page, totalPages }: { slug: string; page: number; totalPages: number }) {
+  if (totalPages <= 1) return null;
+  const base = "inline-flex h-10 min-w-10 items-center justify-center rounded-md border px-3 text-sm font-medium";
+  const linkClass = `${base} border-border bg-card text-foreground hover:border-primary`;
+  return (
+    <nav aria-label="Pagination" className="mt-10 flex flex-wrap items-center justify-center gap-2">
+      {page > 1 && (
+        <Link to={pageHref(slug, page - 1)} rel="prev" className={linkClass}>
+          ← Prev
+        </Link>
+      )}
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) =>
+        p === page ? (
+          <span key={p} aria-current="page" className={`${base} border-primary bg-primary text-primary-foreground`}>
+            {p}
+          </span>
+        ) : (
+          <Link key={p} to={pageHref(slug, p)} className={linkClass}>
+            {p}
+          </Link>
+        )
+      )}
+      {page < totalPages && (
+        <Link to={pageHref(slug, page + 1)} rel="next" className={linkClass}>
+          Next →
+        </Link>
+      )}
+    </nav>
+  );
+}
+
 const CategoryPage = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug, page: pageParam } = useParams<{ slug: string; page?: string }>();
+  const page = Math.max(1, Number(pageParam) || 1);
+  const seed = preloaded(slug);
+  const seedPage = seed && (seed.categoryPage ?? 1) === page ? seed : undefined;
+
+  // The pagination links sit below the grid; land the reader at the top of the new page.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [page]);
 
   const { data: category } = useQuery({
     queryKey: ["category", slug],
@@ -40,40 +87,43 @@ const CategoryPage = () => {
     enabled: !!slug,
   });
 
-  // Paged rather than unbounded: a category with 100 posts used to ship all of
-  // them on first paint, when a visitor sees at most a couple of rows.
-  const [page, setPage] = useState(0);
-
-  const { data: pages } = useQuery({
+  const { data: pageData } = useQuery({
     queryKey: ["category-posts", category?.id, page],
-    // Only the first page was rendered server-side.
-    initialData: page === 0 ? (preloaded(slug)?.categoryPosts as any[] | undefined) : undefined,
+    // Only the page the server rendered is seeded.
+    initialData: seedPage
+      ? { posts: seedPage.categoryPosts as any[], total: seedPage.categoryTotal ?? 0 }
+      : undefined,
     queryFn: async () => {
-      const { data } = await supabase
+      const from = (page - 1) * PAGE_SIZE;
+      const { data, count } = await supabase
         .from("posts")
-        .select("id, title, slug, excerpt, cover_image, created_at")
+        .select("id, title, slug, excerpt, cover_image, created_at", { count: "exact" })
         .eq("category_id", category!.id)
         .eq("published", true)
         .order("created_at", { ascending: false })
-        .range(0, (page + 1) * PAGE_SIZE - 1);
-      return (data ?? []) as any[];
+        .range(from, from + PAGE_SIZE - 1);
+      return { posts: (data ?? []) as any[], total: count ?? 0 };
     },
     enabled: !!category?.id,
     placeholderData: (previous) => previous,
   });
 
-  const posts = pages ?? [];
-  const hasMore = posts.length === (page + 1) * PAGE_SIZE;
+  const posts = pageData?.posts ?? [];
+  const totalPages = Math.max(1, Math.ceil((pageData?.total ?? 0) / PAGE_SIZE));
 
-  const url = `${BASE_URL}/category/${slug}`;
-  const description =
+  const baseUrl = `${BASE_URL}/category/${slug}`;
+  const url = page > 1 ? `${baseUrl}/page/${page}` : baseUrl;
+  const baseDescription =
     category?.description ||
     `Browse every ${categoryLabel(category?.name)} review on ${SITE_NAME} — hands-on testing, pricing breakdowns and honest verdicts.`;
+  // Must match api/post-meta.js.
+  const description = page > 1 ? `Page ${page} of ${totalPages}. ${baseDescription}` : baseDescription;
+  const pageSuffix = page > 1 ? ` — Page ${page} of ${totalPages}` : "";
 
   return (
     <>
       <Seo
-        title={`${categoryLabel(category?.name) || "Category"} — Reviews & Comparisons | ${SITE_NAME}`}
+        title={`${categoryLabel(category?.name) || "Category"} — Reviews & Comparisons${pageSuffix} | ${SITE_NAME}`}
         description={description}
         canonical={url}
         schema={[
@@ -91,8 +141,11 @@ const CategoryPage = () => {
                 "@type": "ListItem",
                 position: 2,
                 name: categoryLabel(category?.name) || "Category",
-                item: url,
+                item: baseUrl,
               },
+              ...(page > 1
+                ? [{ "@type": "ListItem", position: 3, name: `Page ${page}`, item: url }]
+                : []),
             ],
           },
         ]}
@@ -104,6 +157,9 @@ const CategoryPage = () => {
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
               {category?.icon && <CategoryIcon name={category.icon} className="h-8 w-8 text-primary" />}
               {categoryLabel(category?.name)}
+              {page > 1 && (
+                <span className="text-muted-foreground font-medium text-xl md:text-2xl">· Page {page}</span>
+              )}
             </h1>
             <p className="text-muted-foreground mt-2">
               Browse all reviews in this category
@@ -125,17 +181,7 @@ const CategoryPage = () => {
                   />
                 ))}
               </div>
-              {hasMore && (
-                <div className="mt-10 text-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => setPage((p) => p + 1)}
-                    className="border-border"
-                  >
-                    Load more reviews
-                  </Button>
-                </div>
-              )}
+              {slug && <CategoryPagination slug={slug} page={page} totalPages={totalPages} />}
             </>
           ) : (
             <div className="text-center py-20 rounded-xl border border-border bg-card">

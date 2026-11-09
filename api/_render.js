@@ -271,7 +271,7 @@ function renderAside(offer, rating, headings) {
 }
 
 // Layout mirrors src/pages/PostPage.tsx so the React takeover is invisible.
-export function renderPostBody(post, category) {
+export function renderPostBody(post, category, related = []) {
   const crumbs =
     `<nav class="mb-7 flex items-center gap-1.5 text-sm text-muted-foreground">` +
     `<a href="/" class="shrink-0 hover:text-primary">Home</a><span class="text-border">/</span>` +
@@ -315,6 +315,7 @@ export function renderPostBody(post, category) {
       cover +
       `<div class="mt-9">${renderDisclosure()}</div>` +
       renderContent(contentHtml) +
+      renderRelated(related, category) +
       `</article>` +
       renderAside(offer, rating, headings) +
       `</div>`
@@ -341,6 +342,41 @@ function postCard(post, categoryName) {
 }
 
 const CARD_GRID = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5";
+
+/** Mirrors src/components/RelatedPosts.tsx. */
+function renderRelated(posts, category) {
+  if (!posts?.length) return "";
+  const name = category ? categoryLabel(category.name) : "";
+  return (
+    `<section class="mt-16 pt-10 border-t border-border">` +
+    `<h2 class="font-display text-2xl font-bold text-foreground mb-6">Related Posts</h2>` +
+    `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">` +
+    posts.map((p) => postCard(p, name)).join("") +
+    `</div></section>`
+  );
+}
+
+/** Page links for a category. Mirrors CategoryPagination in src/pages/CategoryPage.tsx. */
+export function categoryPageHref(slug, page) {
+  return page > 1 ? `/category/${slug}/page/${page}` : `/category/${slug}`;
+}
+
+function renderPagination(slug, page, totalPages) {
+  if (totalPages <= 1) return "";
+  const base = "inline-flex h-10 min-w-10 items-center justify-center rounded-md border px-3 text-sm font-medium";
+  const link = (p, label, rel) =>
+    `<a href="${esc(categoryPageHref(slug, p))}"${rel ? ` rel="${rel}"` : ""} class="${base} border-border bg-card text-foreground hover:border-primary">${label}</a>`;
+  let out = "";
+  if (page > 1) out += link(page - 1, "← Prev", "prev");
+  for (let p = 1; p <= totalPages; p++) {
+    out +=
+      p === page
+        ? `<span aria-current="page" class="${base} border-primary bg-primary text-primary-foreground">${p}</span>`
+        : link(p, String(p));
+  }
+  if (page < totalPages) out += link(page + 1, "Next →", "next");
+  return `<nav aria-label="Pagination" class="mt-10 flex flex-wrap items-center justify-center gap-2">${out}</nav>`;
+}
 
 /**
  * Homepage body. Mirrors src/pages/Index.tsx closely enough that the React
@@ -386,10 +422,12 @@ export function renderHomeBody(sections) {
 }
 
 /** Category listing body. Mirrors src/pages/CategoryPage.tsx. */
-export function renderCategoryBody(category, description, posts) {
+export function renderCategoryBody(category, description, posts, page = 1, totalPages = 1) {
   const head =
     `<div class="mb-10">` +
-    `<h1 class="font-display text-3xl md:text-4xl font-bold text-foreground">${esc(categoryLabel(category.name))}</h1>` +
+    `<h1 class="font-display text-3xl md:text-4xl font-bold text-foreground">${esc(categoryLabel(category.name))}${
+      page > 1 ? ` <span class="text-muted-foreground font-medium text-xl md:text-2xl">· Page ${page}</span>` : ""
+    }</h1>` +
     `<p class="text-muted-foreground mt-2">${esc(description)}</p></div>`;
 
   const grid = posts.length
@@ -399,7 +437,7 @@ export function renderCategoryBody(category, description, posts) {
     : `<div class="text-center py-20 rounded-xl border border-border bg-card">` +
       `<p class="text-muted-foreground">No posts in this category yet.</p></div>`;
 
-  return shell(head + grid);
+  return shell(head + grid + renderPagination(category.slug, page, totalPages));
 }
 
 export function renderNotFoundBody() {

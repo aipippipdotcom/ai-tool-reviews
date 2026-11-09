@@ -5,6 +5,8 @@ const SUPABASE_KEY =
   process.env.SUPABASE_ANON_KEY ||
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpjZ2N5cnFzYW9kd2Fvcnl4Y3d5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NjIzMjEsImV4cCI6MjA4ODUzODMyMX0.eyL_WB5GR3g-sjj9PVkVN_r18j8p8QVSpjDJVMOUPJY'
 const BASE_URL = 'https://aipippip.net'
+/** Must match CATEGORY_PAGE_SIZE in api/post-meta.js. */
+const CATEGORY_PAGE_SIZE = 12
 
 const day = (iso) => (iso ? String(iso).split('T')[0] : null)
 
@@ -35,11 +37,26 @@ export default async function handler() {
   // Google re-crawls the hubs when anything under them changes.
   const newest = day(posts[0]?.updated_at)
   const newestByCategory = {}
+  const countByCategory = {}
   for (const p of posts) {
-    if (p.category_id && !newestByCategory[p.category_id]) {
+    if (!p.category_id) continue
+    countByCategory[p.category_id] = (countByCategory[p.category_id] || 0) + 1
+    if (!newestByCategory[p.category_id]) {
       newestByCategory[p.category_id] = day(p.updated_at)
     }
   }
+
+  // Category pages 2..N (see the pagination in api/post-meta.js).
+  const pagedCategoryUrls = categories.flatMap((cat) => {
+    const pages = Math.ceil((countByCategory[cat.id] || 0) / CATEGORY_PAGE_SIZE)
+    return Array.from({ length: Math.max(0, pages - 1) }, (_, i) =>
+      url({
+        loc: `${BASE_URL}/category/${cat.slug}/page/${i + 2}`,
+        changefreq: 'weekly',
+        priority: '0.5',
+      })
+    )
+  })
 
   const urls = [
     url({ loc: BASE_URL, lastmod: newest, changefreq: 'daily', priority: '1.0' }),
@@ -53,6 +70,7 @@ export default async function handler() {
         priority: '0.7',
       })
     ),
+    ...pagedCategoryUrls,
     ...posts.map((post) =>
       url({
         loc: `${BASE_URL}/post/${post.slug}`,

@@ -9,6 +9,7 @@
     { "src": "/", "dest": "/api/post-meta?path=/" },
     { "src": "/(categories|about)/?", "dest": "/api/post-meta?path=/$1" },
     { "src": "/post/([^/]+)/?", "dest": "/api/post-meta?path=/post/$1" },
+    { "src": "/category/([^/]+)/page/([0-9]+)/?", "dest": "/api/post-meta?path=/category/$1/page/$2" },
     { "src": "/category/([^/]+)/?", "dest": "/api/post-meta?path=/category/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }

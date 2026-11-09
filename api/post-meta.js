@@ -1,6 +1,7 @@
 import { indexHtml } from './index-html.js'
 import { tokenize } from './_shortcodes.js'
 import { sb } from './_supabase.js'
+import { pickNeighbours, RELATED_COUNT } from './_related.js'
 import {
   esc,
   categoryLabel,
@@ -53,11 +54,30 @@ const getCategories = () =>
     (d) => d || []
   )
 
-const getCategoryPosts = (categoryId, limit) =>
+const getCategoryPosts = (categoryId, limit, offset = 0) =>
   sb(
     `posts?published=eq.true&category_id=eq.${encodeURIComponent(categoryId)}` +
-      `&select=${listSelect}&order=created_at.desc&limit=${limit}`
+      `&select=${listSelect}&order=created_at.desc&limit=${limit}&offset=${offset}`
   ).then((d) => d || [])
+
+const countCategoryPosts = (categoryId) =>
+  sb(`posts?published=eq.true&category_id=eq.${encodeURIComponent(categoryId)}&select=id`).then(
+    (d) => (d || []).length
+  )
+
+/** The post's neighbours by date in its category. See api/_related.js. */
+async function getRelated(post) {
+  if (!post.category_id) return []
+  const base =
+    `posts?published=eq.true&category_id=eq.${encodeURIComponent(post.category_id)}` +
+    `&id=neq.${encodeURIComponent(post.id)}&select=${listSelect}&limit=${RELATED_COUNT}`
+  const at = encodeURIComponent(post.created_at)
+  const [newer, older] = await Promise.all([
+    sb(`${base}&created_at=gt.${at}&order=created_at.asc`),
+    sb(`${base}&created_at=lt.${at}&order=created_at.desc`),
+  ])
+  return pickNeighbours(newer || [], older || [])
+}
 
 /** "$9.95" / "€19" / "29 USD" → { price, currency } */
 function parsePrice(raw) {
@@ -149,7 +169,10 @@ async function resolve(urlPath) {
     const post = await getPost(decodeURIComponent(postMatch[1]))
     if (!post) return null
 
-    const category = post.category_id ? await getCategoryById(post.category_id) : null
+    const [category, related] = await Promise.all([
+      post.category_id ? getCategoryById(post.category_id) : null,
+      getRelated(post),
+    ])
     const title = `${post.meta_title || post.title} — ${SITE_NAME}`
     const description = post.meta_description || post.excerpt || DEFAULT_DESC
     const image = post.cover_image || DEFAULT_IMAGE
@@ -228,29 +251,47 @@ async function resolve(urlPath) {
         type: 'article',
         schema: JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }),
       },
-      body: renderPostBody(post, category),
+      body: renderPostBody(post, category, related),
       // Seeds React Query so the SPA paints the article on its first render.
       // Without it React would wipe the injected HTML and flash a skeleton
       // while it re-fetched a post we have already loaded here.
-      preload: { post: { ...post, categories: category } },
+      preload: { post: { ...post, categories: category }, related },
     }
   }
 
-  const catMatch = urlPath.match(/^\/category\/([^/]+)\/?$/)
+  // Page 1 is /category/:slug; later pages are /category/:slug/page/:n. They
+  // are real, linked URLs rather than a "Load more" button, because a crawler
+  // never clicks: with the button, only the first 12 posts of each category
+  // were reachable, and most of the site was linked from nowhere.
+  const catMatch = urlPath.match(/^\/category\/([^/]+)(?:\/page\/(\d+))?\/?$/)
   if (catMatch) {
     const slug = decodeURIComponent(catMatch[1])
+    const page = catMatch[2] ? Number(catMatch[2]) : 1
     const cat = await getCategoryBySlug(slug)
     if (!cat) return null
 
-    const url = `${BASE_URL}/category/${cat.slug}`
-    const description =
+    const baseUrl = `${BASE_URL}/category/${cat.slug}`
+    // /page/1 duplicates the bare URL; send it there rather than serve it twice.
+    if (catMatch[2] && page <= 1) return { redirect: `/category/${cat.slug}` }
+
+    const [posts, total] = await Promise.all([
+      getCategoryPosts(cat.id, CATEGORY_PAGE_SIZE, (page - 1) * CATEGORY_PAGE_SIZE),
+      countCategoryPosts(cat.id),
+    ])
+    const totalPages = Math.max(1, Math.ceil(total / CATEGORY_PAGE_SIZE))
+    if (page > totalPages) return null
+
+    const url = page > 1 ? `${baseUrl}/page/${page}` : baseUrl
+    const pageSuffix = page > 1 ? ` — Page ${page} of ${totalPages}` : ''
+    const baseDescription =
       cat.description ||
       `Browse every ${categoryLabel(cat.name)} review on ${SITE_NAME} — hands-on testing, pricing breakdowns and honest verdicts.`
-    const posts = await getCategoryPosts(cat.id, CATEGORY_PAGE_SIZE)
+    // Distinct per page, so Search Console does not flag duplicate descriptions.
+    const description = page > 1 ? `Page ${page} of ${totalPages}. ${baseDescription}` : baseDescription
 
     return {
       meta: {
-        title: `${categoryLabel(cat.name)} — Reviews & Comparisons | ${SITE_NAME}`,
+        title: `${categoryLabel(cat.name)} — Reviews & Comparisons${pageSuffix} | ${SITE_NAME}`,
         description,
         image: DEFAULT_IMAGE,
         url,
@@ -267,17 +308,20 @@ async function resolve(urlPath) {
             },
             breadcrumb([
               { name: 'Home', url: BASE_URL },
-              { name: categoryLabel(cat.name), url },
+              { name: categoryLabel(cat.name), url: baseUrl },
+              ...(page > 1 ? [{ name: `Page ${page}`, url }] : []),
             ]),
           ],
         }),
       },
-      body: renderCategoryBody(cat, description, posts),
+      body: renderCategoryBody(cat, baseDescription, posts, page, totalPages),
       // Keys must match the useQuery calls in src/pages/CategoryPage.tsx, or
       // React refetches and flashes an empty grid over the rendered one.
       preload: {
         category: cat,
         categoryPosts: posts,
+        categoryPage: page,
+        categoryTotal: total,
         categoryPageSize: CATEGORY_PAGE_SIZE,
       },
     }
@@ -398,6 +442,12 @@ export default async function handler(req, res) {
       .setHeader('content-type', 'text/plain; charset=utf-8')
       .setHeader('cache-control', 'no-store')
       .send(`Temporarily unavailable: ${err?.message || 'unknown error'}`)
+  }
+
+  if (resolved?.redirect) {
+    res.setHeader('Location', resolved.redirect)
+    res.setHeader('Cache-Control', 'public, s-maxage=86400')
+    return res.status(301).send('')
   }
 
   // Unknown slug → a real 404. Previously this fell through to default meta

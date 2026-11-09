@@ -280,6 +280,7 @@ const PostPage = () => {
             {category && (
               <RelatedPosts
                 currentPostId={post.id}
+                currentCreatedAt={post.created_at}
                 categoryId={post.category_id}
                 categoryName={category.name}
                 categorySlug={category.slug}

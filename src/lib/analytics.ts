@@ -20,6 +20,9 @@ declare global {
       homePosts?: Record<string, Record<string, unknown>[]>;
       category?: Record<string, unknown>;
       categoryPosts?: Record<string, unknown>[];
+      categoryPage?: number;
+      categoryTotal?: number;
+      related?: Record<string, unknown>[];
     };
   }
 }
