@@ -9,6 +9,16 @@ import Seo, { BASE_URL, SITE_NAME } from "@/components/Seo";
 import CategoryIcon from "@/components/CategoryIcon";
 import { categoryLabel } from "@/lib/format";
 
+type CategoryRow = { id: string; name: string; slug: string; icon: string | null; description: string | null };
+type ListPost = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  cover_image: string | null;
+  created_at: string;
+};
+
 /** Two full rows at the widest breakpoint, so the first screen is covered. */
 const PAGE_SIZE = 12;
 
@@ -75,7 +85,7 @@ const CategoryPage = () => {
 
   const { data: category } = useQuery({
     queryKey: ["category", slug],
-    initialData: preloaded(slug)?.category as any,
+    initialData: preloaded(slug)?.category as CategoryRow | undefined,
     queryFn: async () => {
       const { data } = await supabase
         .from("categories")
@@ -91,7 +101,7 @@ const CategoryPage = () => {
     queryKey: ["category-posts", category?.id, page],
     // Only the page the server rendered is seeded.
     initialData: seedPage
-      ? { posts: seedPage.categoryPosts as any[], total: seedPage.categoryTotal ?? 0 }
+      ? { posts: seedPage.categoryPosts as ListPost[], total: seedPage.categoryTotal ?? 0 }
       : undefined,
     queryFn: async () => {
       const from = (page - 1) * PAGE_SIZE;
@@ -102,7 +112,7 @@ const CategoryPage = () => {
         .eq("published", true)
         .order("created_at", { ascending: false })
         .range(from, from + PAGE_SIZE - 1);
-      return { posts: (data ?? []) as any[], total: count ?? 0 };
+      return { posts: (data ?? []) as ListPost[], total: count ?? 0 };
     },
     enabled: !!category?.id,
     placeholderData: (previous) => previous,
